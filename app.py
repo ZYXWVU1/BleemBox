@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import ctypes
 import tkinter as tk
-from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+from tkinter import ttk
 
-from rename_logic import build_rename_preview, rename_files
+from batch_rename_tool import BatchRenamerView
+from qr_code_tool import QRCodeGeneratorView
 
 
 def enable_windows_dpi_awareness() -> None:
@@ -20,27 +20,23 @@ def enable_windows_dpi_awareness() -> None:
 
 
 class ToolboxApp(tk.Tk):
+    """Main window that hosts the toolbox home screen and each tool view."""
+
     def __init__(self) -> None:
         super().__init__()
         self.title("Desktop Toolbox")
         self.geometry("1080x700")
         self.minsize(920, 620)
         self.configure(bg="#dbe4ea")
+
         try:
             self.tk.call("tk", "scaling", self.winfo_fpixels("1i") / 72.0)
         except tk.TclError:
             pass
 
-        self.selected_files: list[str] = []
-        self.base_name_var = tk.StringVar(value="file")
-        self.start_number_var = tk.StringVar(value="1")
-        self.keep_extension_var = tk.BooleanVar(value=True)
-        self.status_var = tk.StringVar(value="Choose files to start.")
-
-        # Build the window once, then switch between the home screen and tools inside it.
+        # The app shell owns the styles, sidebar, and navigation between tool screens.
         self._build_styles()
         self._build_layout()
-        self._bind_live_preview()
         self.show_home()
 
     def _build_styles(self) -> None:
@@ -161,21 +157,6 @@ class ToolboxApp(tk.Tk):
         )
 
         style.configure(
-            "ToolCard.TButton",
-            background="#ffffff",
-            foreground="#16324f",
-            borderwidth=0,
-            focuscolor="#ffffff",
-            padding=(24, 20),
-            font=("Segoe UI Semibold", 12),
-        )
-        style.map(
-            "ToolCard.TButton",
-            background=[("active", "#f1f6fa"), ("pressed", "#e7eff6")],
-            foreground=[("active", "#16324f")],
-        )
-
-        style.configure(
             "Clean.Treeview",
             background="#ffffff",
             fieldbackground="#ffffff",
@@ -198,51 +179,41 @@ class ToolboxApp(tk.Tk):
         )
 
     def _build_layout(self) -> None:
-        # The app uses a fixed sidebar plus a main content area that swaps views.
+        # The layout is a sidebar on the left and a content area on the right.
         shell = ttk.Frame(self, style="Shell.TFrame", padding=18)
         shell.pack(fill="both", expand=True)
         shell.columnconfigure(1, weight=1)
         shell.rowconfigure(0, weight=1)
 
-        self.sidebar = ttk.Frame(shell, style="Sidebar.TFrame", padding=22)
-        self.sidebar.grid(row=0, column=0, sticky="ns", padx=(0, 18))
+        sidebar = ttk.Frame(shell, style="Sidebar.TFrame", padding=22)
+        sidebar.grid(row=0, column=0, sticky="ns", padx=(0, 18))
 
-        ttk.Label(self.sidebar, text="Bleem Box", style="AppTitle.TLabel").pack(anchor="w")
+        ttk.Label(sidebar, text="Bleem Box", style="AppTitle.TLabel").pack(anchor="w")
         ttk.Label(
-            self.sidebar,
+            sidebar,
             text="Open one place,\nlaunch the tools you need.",
             style="SidebarText.TLabel",
             justify="left",
         ).pack(anchor="w", pady=(8, 24))
 
-        ttk.Button(self.sidebar, text="Home", style="Nav.TButton", command=self.show_home).pack(fill="x", pady=(0, 8))
-        ttk.Button(
-            self.sidebar,
-            text="Batch file renaming",
-            style="Nav.TButton",
-            command=self.show_renamer,
-        ).pack(fill="x")
+        ttk.Button(sidebar, text="Home", style="Nav.TButton", command=self.show_home).pack(fill="x", pady=(0, 8))
+        ttk.Button(sidebar, text="Batch file renaming", style="Nav.TButton", command=self.show_renamer).pack(fill="x")
+        ttk.Button(sidebar, text="QR code generator", style="Nav.TButton", command=self.show_qr_generator).pack(
+            fill="x", pady=(8, 0)
+        )
 
         self.content = ttk.Frame(shell, style="Panel.TFrame", padding=0)
         self.content.grid(row=0, column=1, sticky="nsew")
         self.content.columnconfigure(0, weight=1)
         self.content.rowconfigure(0, weight=1)
 
+        # Each tool is its own frame class now, which keeps this file focused on navigation.
         self.home_view = self._build_home_view(self.content)
-        self.renamer_view = self._build_renamer_view(self.content)
-
-    def _bind_live_preview(self) -> None:
-        # Any change to these inputs should immediately refresh the rename preview.
-        self.base_name_var.trace_add("write", self._handle_live_preview)
-        self.start_number_var.trace_add("write", self._handle_live_preview)
-        self.keep_extension_var.trace_add("write", self._handle_live_preview)
-
-    def _handle_live_preview(self, *_args) -> None:
-        if self.selected_files:
-            self.refresh_preview()
+        self.renamer_view = BatchRenamerView(self.content, self.show_home)
+        self.qr_view = QRCodeGeneratorView(self.content, self.show_home)
 
     def _build_home_view(self, parent: ttk.Frame) -> ttk.Frame:
-        # This is the first screen the user sees: a launcher for toolbox apps.
+        # The home screen acts like a launcher for all tools in the toolbox.
         frame = ttk.Frame(parent, style="Panel.TFrame", padding=0)
         frame.columnconfigure(0, weight=1)
         frame.rowconfigure(2, weight=1)
@@ -259,8 +230,14 @@ class ToolboxApp(tk.Tk):
             text="Start from the toolbox home screen, then open any tool when you need it.",
             style="HeroText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(10, 16))
-        ttk.Button(hero, text="Open Batch File Renaming", style="Primary.TButton", command=self.show_renamer).grid(
-            row=2, column=0, sticky="w"
+
+        hero_actions = ttk.Frame(hero, style="Hero.TFrame")
+        hero_actions.grid(row=2, column=0, sticky="w")
+        ttk.Button(hero_actions, text="Open Batch File Renaming", style="Primary.TButton", command=self.show_renamer).pack(
+            side="left", padx=(0, 10)
+        )
+        ttk.Button(hero_actions, text="Open QR Code Generator", style="Secondary.TButton", command=self.show_qr_generator).pack(
+            side="left"
         )
 
         intro = ttk.Frame(frame, style="Panel.TFrame", padding=(6, 24, 6, 12))
@@ -268,7 +245,7 @@ class ToolboxApp(tk.Tk):
         ttk.Label(intro, text="Available Tools", style="SectionTitle.TLabel").pack(anchor="w")
         ttk.Label(
             intro,
-            text="The first tool is ready now. More tools can be added to this home page later.",
+            text="Each tool has its own file now, so the project is easier to read and extend.",
             style="SectionText.TLabel",
         ).pack(anchor="w", pady=(6, 0))
 
@@ -287,186 +264,37 @@ class ToolboxApp(tk.Tk):
             wraplength=320,
             justify="left",
         ).pack(anchor="w", pady=(10, 18))
-        ttk.Button(
-            renamer_card,
-            text="Launch Tool",
-            style="Primary.TButton",
-            command=self.show_renamer,
-        ).pack(anchor="w")
+        ttk.Button(renamer_card, text="Launch Tool", style="Primary.TButton", command=self.show_renamer).pack(anchor="w")
 
-        placeholder_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
-        placeholder_card.grid(row=0, column=1, sticky="nsew", padx=(10, 0), pady=(0, 10))
-        ttk.Label(placeholder_card, text="Next Tool Slot", style="CardTitle.TLabel").pack(anchor="w")
+        qr_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
+        qr_card.grid(row=0, column=1, sticky="nsew", padx=(10, 0), pady=(0, 10))
+        ttk.Label(qr_card, text="QR Code Generator", style="CardTitle.TLabel").pack(anchor="w")
         ttk.Label(
-            placeholder_card,
-            text="This space is ready for the next app you want inside the toolbox.",
+            qr_card,
+            text="Generate a QR code for a website, image link, or music link, then save it as a PNG.",
             style="CardText.TLabel",
             wraplength=320,
             justify="left",
         ).pack(anchor="w", pady=(10, 18))
-        ttk.Button(placeholder_card, text="Coming Soon", style="Secondary.TButton").pack(anchor="w")
+        ttk.Button(qr_card, text="Launch Tool", style="Primary.TButton", command=self.show_qr_generator).pack(anchor="w")
 
         return frame
 
-    def _build_renamer_view(self, parent: ttk.Frame) -> ttk.Frame:
-        # The renamer tool lives in its own view, but still inside the same window.
-        frame = ttk.Frame(parent, style="Panel.TFrame", padding=0)
-        frame.columnconfigure(0, weight=1)
-        frame.rowconfigure(2, weight=1)
-
-        header = ttk.Frame(frame, style="Panel.TFrame", padding=(6, 0, 6, 18))
-        header.grid(row=0, column=0, sticky="ew")
-        header.columnconfigure(0, weight=1)
-
-        ttk.Label(header, text="Rename Multiple Files", style="SectionTitle.TLabel").grid(row=0, column=0, sticky="w")
-        ttk.Label(
-            header,
-            text="Select files, preview the new names, then rename everything in one step.",
-            style="SectionText.TLabel",
-        ).grid(row=1, column=0, sticky="w", pady=(6, 0))
-        ttk.Button(header, text="Back to Home", style="Secondary.TButton", command=self.show_home).grid(
-            row=0, column=1, rowspan=2, sticky="e"
-        )
-
-        controls_card = ttk.Frame(frame, style="Card.TFrame", padding=22)
-        controls_card.grid(row=1, column=0, sticky="ew", padx=6, pady=(0, 14))
-        controls_card.columnconfigure(1, weight=1)
-        controls_card.columnconfigure(3, weight=1)
-
-        ttk.Label(controls_card, text="Files", style="FieldLabel.TLabel").grid(row=0, column=0, sticky="w")
-        ttk.Button(controls_card, text="Choose Files", style="Primary.TButton", command=self.choose_files).grid(
-            row=1, column=0, sticky="w", padx=(0, 18), pady=(8, 0)
-        )
-
-        ttk.Label(controls_card, text="Base name", style="FieldLabel.TLabel").grid(row=0, column=1, sticky="w")
-        ttk.Entry(controls_card, textvariable=self.base_name_var).grid(row=1, column=1, sticky="ew", padx=(0, 18), pady=(8, 0))
-
-        ttk.Label(controls_card, text="Start number", style="FieldLabel.TLabel").grid(row=0, column=2, sticky="w")
-        ttk.Entry(controls_card, textvariable=self.start_number_var, width=10).grid(
-            row=1, column=2, sticky="w", padx=(0, 18), pady=(8, 0)
-        )
-
-        options = ttk.Frame(controls_card, style="Card.TFrame")
-        options.grid(row=1, column=3, sticky="w", pady=(8, 0))
-        ttk.Checkbutton(
-            options,
-            text="Keep file extensions",
-            variable=self.keep_extension_var,
-        ).pack(anchor="w")
-
-        action_row = ttk.Frame(controls_card, style="Card.TFrame")
-        action_row.grid(row=2, column=0, columnspan=4, sticky="w", pady=(18, 0))
-        ttk.Button(action_row, text="Rename Files", style="Primary.TButton", command=self.perform_rename).pack(side="left")
-
-        preview_card = ttk.Frame(frame, style="Card.TFrame", padding=22)
-        preview_card.grid(row=2, column=0, sticky="nsew", padx=6, pady=(0, 6))
-        preview_card.columnconfigure(0, weight=1)
-        preview_card.rowconfigure(2, weight=1)
-
-        ttk.Label(preview_card, text="Preview", style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
-
-        status_box = ttk.Frame(preview_card, style="Card.TFrame", padding=0)
-        status_box.grid(row=1, column=0, sticky="ew", pady=(10, 14))
-        status_label = ttk.Label(status_box, textvariable=self.status_var, style="Status.TLabel", padding=(12, 9))
-        status_label.pack(anchor="w", fill="x")
-
-        table_frame = ttk.Frame(preview_card, style="Card.TFrame")
-        table_frame.grid(row=2, column=0, sticky="nsew")
-        table_frame.columnconfigure(0, weight=1)
-        table_frame.rowconfigure(0, weight=1)
-
-        columns = ("original", "new")
-        self.preview_table = ttk.Treeview(table_frame, columns=columns, show="headings", style="Clean.Treeview")
-        self.preview_table.heading("original", text="Current Name")
-        self.preview_table.heading("new", text="New Name")
-        self.preview_table.column("original", width=360, anchor="w")
-        self.preview_table.column("new", width=360, anchor="w")
-        self.preview_table.grid(row=0, column=0, sticky="nsew")
-
-        scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=self.preview_table.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        self.preview_table.configure(yscrollcommand=scrollbar.set)
-
-        return frame
+    def _show_view(self, view: ttk.Frame) -> None:
+        # Only one view should be visible at a time, so hide the others first.
+        self.home_view.grid_forget()
+        self.renamer_view.grid_forget()
+        self.qr_view.grid_forget()
+        view.grid(row=0, column=0, sticky="nsew")
 
     def show_home(self) -> None:
-        # Hide the tool view and bring the toolbox landing page back.
-        self.renamer_view.grid_forget()
-        self.home_view.grid(row=0, column=0, sticky="nsew")
+        self._show_view(self.home_view)
 
     def show_renamer(self) -> None:
-        # Hide the home screen and show the batch renaming tool.
-        self.home_view.grid_forget()
-        self.renamer_view.grid(row=0, column=0, sticky="nsew")
+        self._show_view(self.renamer_view)
 
-    def choose_files(self) -> None:
-        paths = filedialog.askopenfilenames(title="Choose files to rename")
-        if not paths:
-            return
-        # Store the selected file paths so the preview and rename step use the same list.
-        self.selected_files = list(paths)
-        self.status_var.set(f"{len(self.selected_files)} file(s) selected.")
-        self.refresh_preview()
-
-    def _parse_start_number(self) -> int:
-        raw_value = self.start_number_var.get().strip()
-        try:
-            number = int(raw_value)
-        except ValueError as exc:
-            raise ValueError("Start number must be a whole number.") from exc
-
-        if number < 1:
-            raise ValueError("Start number must be 1 or higher.")
-        return number
-
-    def _get_preview(self):
-        # Centralize preview creation so both the UI table and rename action stay in sync.
-        start_number = self._parse_start_number()
-        return build_rename_preview(
-            self.selected_files,
-            self.base_name_var.get(),
-            start_number=start_number,
-            keep_extension=self.keep_extension_var.get(),
-        )
-
-    def refresh_preview(self) -> None:
-        # Rebuild the table from scratch to match the latest inputs.
-        self.preview_table.delete(*self.preview_table.get_children())
-
-        try:
-            preview = self._get_preview()
-        except ValueError as exc:
-            if self.selected_files:
-                self.status_var.set(str(exc))
-            return
-
-        for item in preview:
-            self.preview_table.insert("", "end", values=(item.original_name, item.new_name))
-        self.status_var.set(f"Preview ready for {len(preview)} file(s).")
-
-    def perform_rename(self) -> None:
-        try:
-            preview = self._get_preview()
-        except ValueError as exc:
-            messagebox.showerror("Rename Files", str(exc))
-            return
-
-        # Ask for confirmation before changing anything on disk.
-        confirm = messagebox.askyesno("Rename Files", f"Rename {len(preview)} file(s)?")
-        if not confirm:
-            return
-
-        try:
-            renamed_count = rename_files(preview)
-        except Exception as exc:
-            messagebox.showerror("Rename Files", f"Rename failed:\n{exc}")
-            return
-
-        # Update the stored paths so the app still points at the renamed files afterward.
-        self.selected_files = [str(Path(item.path).with_name(item.new_name)) for item in preview]
-        self.refresh_preview()
-        self.status_var.set(f"Renamed {renamed_count} file(s) successfully.")
-        messagebox.showinfo("Rename Files", f"Renamed {renamed_count} file(s).")
+    def show_qr_generator(self) -> None:
+        self._show_view(self.qr_view)
 
 
 def run() -> None:

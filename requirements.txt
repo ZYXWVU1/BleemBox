@@ -1,1 +1,1 @@
-# No external packages required.
+qrcode[pil]>=7.4
