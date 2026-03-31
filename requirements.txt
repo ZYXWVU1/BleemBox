@@ -1,1 +1,10 @@
 qrcode[pil]>=7.4
+pypdf>=4.2
+pypdfium2>=4.30
+rapidocr-onnxruntime>=1.4,<2; python_version < "3.13" and platform_system != "Windows"
+winrt-runtime>=3.2; platform_system == "Windows"
+winrt-Windows.Foundation>=3.2; platform_system == "Windows"
+winrt-Windows.Globalization>=3.2; platform_system == "Windows"
+winrt-Windows.Graphics.Imaging>=3.2; platform_system == "Windows"
+winrt-Windows.Media.Ocr>=3.2; platform_system == "Windows"
+winrt-Windows.Storage.Streams>=3.2; platform_system == "Windows"

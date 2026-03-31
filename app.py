@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from batch_rename_tool import BatchRenamerView
+from pdf_text_tool import PDFTextScannerView
 from qr_code_tool import QRCodeGeneratorView
 
 
@@ -201,6 +202,9 @@ class ToolboxApp(tk.Tk):
         ttk.Button(sidebar, text="QR code generator", style="Nav.TButton", command=self.show_qr_generator).pack(
             fill="x", pady=(8, 0)
         )
+        ttk.Button(sidebar, text="PDF text scanner", style="Nav.TButton", command=self.show_pdf_scanner).pack(
+            fill="x", pady=(8, 0)
+        )
 
         self.content = ttk.Frame(shell, style="Panel.TFrame", padding=0)
         self.content.grid(row=0, column=1, sticky="nsew")
@@ -211,72 +215,62 @@ class ToolboxApp(tk.Tk):
         self.home_view = self._build_home_view(self.content)
         self.renamer_view = BatchRenamerView(self.content, self.show_home)
         self.qr_view = QRCodeGeneratorView(self.content, self.show_home)
+        self.pdf_view = PDFTextScannerView(self.content, self.show_home)
 
     def _build_home_view(self, parent: ttk.Frame) -> ttk.Frame:
         # The home screen acts like a launcher for all tools in the toolbox.
-        frame = ttk.Frame(parent, style="Panel.TFrame", padding=0)
+        frame = ttk.Frame(parent, style="Panel.TFrame", padding=6)
         frame.columnconfigure(0, weight=1)
-        frame.rowconfigure(2, weight=1)
-
-        hero = ttk.Frame(frame, style="Hero.TFrame", padding=28)
-        hero.grid(row=0, column=0, sticky="ew")
-        hero.columnconfigure(0, weight=1)
-
-        ttk.Label(hero, text="Simple tools, one clean desktop app.", style="HeroTitle.TLabel").grid(
-            row=0, column=0, sticky="w"
-        )
-        ttk.Label(
-            hero,
-            text="Start from the toolbox home screen, then open any tool when you need it.",
-            style="HeroText.TLabel",
-        ).grid(row=1, column=0, sticky="w", pady=(10, 16))
-
-        hero_actions = ttk.Frame(hero, style="Hero.TFrame")
-        hero_actions.grid(row=2, column=0, sticky="w")
-        ttk.Button(hero_actions, text="Open Batch File Renaming", style="Primary.TButton", command=self.show_renamer).pack(
-            side="left", padx=(0, 10)
-        )
-        ttk.Button(hero_actions, text="Open QR Code Generator", style="Secondary.TButton", command=self.show_qr_generator).pack(
-            side="left"
-        )
-
-        intro = ttk.Frame(frame, style="Panel.TFrame", padding=(6, 24, 6, 12))
-        intro.grid(row=1, column=0, sticky="ew")
-        ttk.Label(intro, text="Available Tools", style="SectionTitle.TLabel").pack(anchor="w")
-        ttk.Label(
-            intro,
-            text="Each tool has its own file now, so the project is easier to read and extend.",
-            style="SectionText.TLabel",
-        ).pack(anchor="w", pady=(6, 0))
+        frame.rowconfigure(0, weight=1)
 
         cards = ttk.Frame(frame, style="Panel.TFrame", padding=6)
-        cards.grid(row=2, column=0, sticky="nsew")
+        cards.grid(row=0, column=0, sticky="nsew")
         cards.columnconfigure(0, weight=1)
         cards.columnconfigure(1, weight=1)
+        cards.columnconfigure(2, weight=1)
+        cards.rowconfigure(0, weight=1)
 
         renamer_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
-        renamer_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=(0, 10))
+        renamer_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=0)
+        renamer_card.columnconfigure(0, weight=1)
+        renamer_card.rowconfigure(1, weight=1)
         ttk.Label(renamer_card, text="Batch File Renaming", style="CardTitle.TLabel").pack(anchor="w")
         ttk.Label(
             renamer_card,
             text="Rename many files at once with a simple base name and instant preview.",
             style="CardText.TLabel",
-            wraplength=320,
+            wraplength=250,
             justify="left",
-        ).pack(anchor="w", pady=(10, 18))
-        ttk.Button(renamer_card, text="Launch Tool", style="Primary.TButton", command=self.show_renamer).pack(anchor="w")
+        ).pack(anchor="w", fill="x", pady=(10, 18))
+        ttk.Button(renamer_card, text="Open Tool", style="Primary.TButton", command=self.show_renamer).pack(anchor="center")
 
         qr_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
-        qr_card.grid(row=0, column=1, sticky="nsew", padx=(10, 0), pady=(0, 10))
+        qr_card.grid(row=0, column=1, sticky="nsew", padx=10, pady=0)
+        qr_card.columnconfigure(0, weight=1)
+        qr_card.rowconfigure(1, weight=1)
         ttk.Label(qr_card, text="QR Code Generator", style="CardTitle.TLabel").pack(anchor="w")
         ttk.Label(
             qr_card,
             text="Generate a QR code for a website, image link, or music link, then save it as a PNG.",
             style="CardText.TLabel",
-            wraplength=320,
+            wraplength=260,
             justify="left",
-        ).pack(anchor="w", pady=(10, 18))
-        ttk.Button(qr_card, text="Launch Tool", style="Primary.TButton", command=self.show_qr_generator).pack(anchor="w")
+        ).pack(anchor="w", fill="x", pady=(10, 18))
+        ttk.Button(qr_card, text="Open Tool", style="Primary.TButton", command=self.show_qr_generator).pack(anchor="center")
+
+        pdf_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
+        pdf_card.grid(row=0, column=2, sticky="nsew", padx=(10, 0), pady=0)
+        pdf_card.columnconfigure(0, weight=1)
+        pdf_card.rowconfigure(1, weight=1)
+        ttk.Label(pdf_card, text="PDF Text Scanner", style="CardTitle.TLabel").pack(anchor="w")
+        ttk.Label(
+            pdf_card,
+            text="Extract readable text from every PDF page, keep page breaks, and save the result as a TXT file.",
+            style="CardText.TLabel",
+            wraplength=260,
+            justify="left",
+        ).pack(anchor="w", fill="x", pady=(10, 18))
+        ttk.Button(pdf_card, text="Open Tool", style="Primary.TButton", command=self.show_pdf_scanner).pack(anchor="center")
 
         return frame
 
@@ -285,6 +279,7 @@ class ToolboxApp(tk.Tk):
         self.home_view.grid_forget()
         self.renamer_view.grid_forget()
         self.qr_view.grid_forget()
+        self.pdf_view.grid_forget()
         view.grid(row=0, column=0, sticky="nsew")
 
     def show_home(self) -> None:
@@ -295,6 +290,9 @@ class ToolboxApp(tk.Tk):
 
     def show_qr_generator(self) -> None:
         self._show_view(self.qr_view)
+
+    def show_pdf_scanner(self) -> None:
+        self._show_view(self.pdf_view)
 
 
 def run() -> None:
