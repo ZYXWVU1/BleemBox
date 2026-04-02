@@ -5,6 +5,8 @@ import tkinter as tk
 from tkinter import ttk
 
 from batch_rename_tool import BatchRenamerView
+from cursor_skin_tool import CursorSkinToolView
+from i18n import LANGUAGE_LABELS, get_language, set_language, t
 from pdf_text_tool import PDFTextScannerView
 from qr_code_tool import QRCodeGeneratorView
 
@@ -25,10 +27,13 @@ class ToolboxApp(tk.Tk):
 
     def __init__(self) -> None:
         super().__init__()
-        self.title("Bleem Box")
+        self.title(t("app.window_title"))
         self.geometry("1080x700")
         self.minsize(920, 620)
         self.configure(bg="#f4efe7")
+        self.main_shell: ttk.Frame | None = None
+        self.language_var = tk.StringVar(value=LANGUAGE_LABELS[get_language()])
+        self.current_view_name = "home"
 
         try:
             self.tk.call("tk", "scaling", self.winfo_fpixels("1i") / 72.0)
@@ -70,6 +75,12 @@ class ToolboxApp(tk.Tk):
             foreground="#f8d9b8",
             font=("Segoe UI Semibold", 9),
             padding=(10, 4),
+        )
+        style.configure(
+            "ToolbarLabel.TLabel",
+            background="#f7f2eb",
+            foreground="#5e666d",
+            font=("Segoe UI Semibold", 10),
         )
         style.configure(
             "Eyebrow.TLabel",
@@ -224,35 +235,62 @@ class ToolboxApp(tk.Tk):
 
     def _build_layout(self) -> None:
         # The layout is a sidebar on the left and a content area on the right.
-        shell = ttk.Frame(self, style="Shell.TFrame", padding=18)
-        shell.pack(fill="both", expand=True)
-        shell.columnconfigure(1, weight=1)
-        shell.rowconfigure(0, weight=1)
+        if self.main_shell is not None:
+            self.main_shell.destroy()
 
-        sidebar = ttk.Frame(shell, style="Sidebar.TFrame", padding=22)
+        self.title(t("app.window_title"))
+        self.main_shell = ttk.Frame(self, style="Shell.TFrame", padding=18)
+        self.main_shell.pack(fill="both", expand=True)
+        self.main_shell.columnconfigure(1, weight=1)
+        self.main_shell.rowconfigure(0, weight=1)
+
+        sidebar = ttk.Frame(self.main_shell, style="Sidebar.TFrame", padding=22)
         sidebar.grid(row=0, column=0, sticky="ns", padx=(0, 18))
 
-        ttk.Label(sidebar, text="DESKTOP TOOLBOX", style="SidebarBadge.TLabel").pack(anchor="w")
-        ttk.Label(sidebar, text="Bleem Box", style="AppTitle.TLabel").pack(anchor="w")
+        ttk.Label(sidebar, text=t("app.sidebar_badge"), style="SidebarBadge.TLabel").pack(anchor="w")
+        ttk.Label(sidebar, text=t("app.window_title"), style="AppTitle.TLabel").pack(anchor="w")
         ttk.Label(
             sidebar,
-            text="Clean utilities for quick desktop tasks.",
+            text=t("app.sidebar_subtitle"),
             style="SidebarText.TLabel",
             justify="left",
             wraplength=190,
         ).pack(anchor="w", pady=(10, 24))
 
-        ttk.Button(sidebar, text="Home", style="Nav.TButton", command=self.show_home).pack(fill="x", pady=(0, 8))
-        ttk.Button(sidebar, text="Batch file renaming", style="Nav.TButton", command=self.show_renamer).pack(fill="x")
-        ttk.Button(sidebar, text="QR code generator", style="Nav.TButton", command=self.show_qr_generator).pack(
+        ttk.Button(sidebar, text=t("app.nav_home"), style="Nav.TButton", command=self.show_home).pack(fill="x", pady=(0, 8))
+        ttk.Button(sidebar, text=t("app.nav_renamer"), style="Nav.TButton", command=self.show_renamer).pack(fill="x")
+        ttk.Button(sidebar, text=t("app.nav_qr"), style="Nav.TButton", command=self.show_qr_generator).pack(
             fill="x", pady=(8, 0)
         )
-        ttk.Button(sidebar, text="PDF text scanner", style="Nav.TButton", command=self.show_pdf_scanner).pack(
+        ttk.Button(sidebar, text=t("app.nav_pdf"), style="Nav.TButton", command=self.show_pdf_scanner).pack(
+            fill="x", pady=(8, 0)
+        )
+        ttk.Button(sidebar, text=t("app.nav_cursor"), style="Nav.TButton", command=self.show_cursor_skins).pack(
             fill="x", pady=(8, 0)
         )
 
-        self.content = ttk.Frame(shell, style="Panel.TFrame", padding=0)
-        self.content.grid(row=0, column=1, sticky="nsew")
+        content_shell = ttk.Frame(self.main_shell, style="Panel.TFrame", padding=0)
+        content_shell.grid(row=0, column=1, sticky="nsew")
+        content_shell.columnconfigure(0, weight=1)
+        content_shell.rowconfigure(1, weight=1)
+
+        toolbar = ttk.Frame(content_shell, style="Panel.TFrame", padding=(10, 4, 10, 10))
+        toolbar.grid(row=0, column=0, sticky="ew")
+        toolbar.columnconfigure(0, weight=1)
+
+        ttk.Label(toolbar, text=t("app.language"), style="ToolbarLabel.TLabel").grid(row=0, column=1, sticky="e", padx=(0, 8))
+        language_switch = ttk.Combobox(
+            toolbar,
+            state="readonly",
+            width=10,
+            values=[LANGUAGE_LABELS["zh"], LANGUAGE_LABELS["en"]],
+            textvariable=self.language_var,
+        )
+        language_switch.grid(row=0, column=2, sticky="e")
+        language_switch.bind("<<ComboboxSelected>>", self._handle_language_change)
+
+        self.content = ttk.Frame(content_shell, style="Panel.TFrame", padding=0)
+        self.content.grid(row=1, column=0, sticky="nsew")
         self.content.columnconfigure(0, weight=1)
         self.content.rowconfigure(0, weight=1)
 
@@ -261,6 +299,7 @@ class ToolboxApp(tk.Tk):
         self.renamer_view = BatchRenamerView(self.content, self.show_home)
         self.qr_view = QRCodeGeneratorView(self.content, self.show_home)
         self.pdf_view = PDFTextScannerView(self.content, self.show_home)
+        self.cursor_view = CursorSkinToolView(self.content, self.show_home)
 
     def _build_home_view(self, parent: ttk.Frame) -> ttk.Frame:
         # The home screen acts like a launcher for all tools in the toolbox.
@@ -272,12 +311,12 @@ class ToolboxApp(tk.Tk):
         intro.grid(row=0, column=0, sticky="ew")
         intro.columnconfigure(0, weight=1)
 
-        ttk.Label(intro, text="Pick the utility you want to open.", style="SectionTitle.TLabel").grid(
+        ttk.Label(intro, text=t("home.title"), style="SectionTitle.TLabel").grid(
             row=0, column=0, sticky="w", pady=(4, 0)
         )
         ttk.Label(
             intro,
-            text="Each card opens directly into its workspace with the same updated design system across the app.",
+            text=t("home.subtitle"),
             style="SectionText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(8, 0))
 
@@ -285,49 +324,71 @@ class ToolboxApp(tk.Tk):
         cards.grid(row=1, column=0, sticky="nsew")
         cards.columnconfigure(0, weight=1)
         cards.columnconfigure(1, weight=1)
-        cards.columnconfigure(2, weight=1)
         cards.rowconfigure(0, weight=1)
+        cards.rowconfigure(1, weight=1)
 
         renamer_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
         renamer_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=0)
-        ttk.Label(renamer_card, text="Batch File Renaming", style="CardTitle.TLabel").pack(anchor="w")
+        ttk.Label(renamer_card, text=t("home.card_renamer_title"), style="CardTitle.TLabel").pack(anchor="w")
         ttk.Label(
             renamer_card,
-            text="Rename many files at once with a simple base name and instant preview.",
+            text=t("home.card_renamer_text"),
             style="CardText.TLabel",
             wraplength=250,
             justify="left",
         ).pack(anchor="w", fill="x", pady=(10, 18))
         ttk.Frame(renamer_card, style="Card.TFrame").pack(fill="both", expand=True)
-        ttk.Button(renamer_card, text="Open Tool", style="Primary.TButton", command=self.show_renamer).pack(anchor="w")
+        ttk.Button(renamer_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_renamer).pack(anchor="w")
 
         qr_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
-        qr_card.grid(row=0, column=1, sticky="nsew", padx=10, pady=0)
-        ttk.Label(qr_card, text="QR Code Generator", style="CardTitle.TLabel").pack(anchor="w")
+        qr_card.grid(row=0, column=1, sticky="nsew", padx=(10, 0), pady=0)
+        ttk.Label(qr_card, text=t("home.card_qr_title"), style="CardTitle.TLabel").pack(anchor="w")
         ttk.Label(
             qr_card,
-            text="Generate a QR code for a website, image link, or music link, then save it as a PNG.",
+            text=t("home.card_qr_text"),
             style="CardText.TLabel",
-            wraplength=260,
+            wraplength=300,
             justify="left",
         ).pack(anchor="w", fill="x", pady=(10, 18))
         ttk.Frame(qr_card, style="Card.TFrame").pack(fill="both", expand=True)
-        ttk.Button(qr_card, text="Open Tool", style="Primary.TButton", command=self.show_qr_generator).pack(anchor="w")
+        ttk.Button(qr_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_qr_generator).pack(anchor="w")
 
         pdf_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
-        pdf_card.grid(row=0, column=2, sticky="nsew", padx=(10, 0), pady=0)
-        ttk.Label(pdf_card, text="PDF Text Scanner", style="CardTitle.TLabel").pack(anchor="w")
+        pdf_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10), pady=(18, 0))
+        ttk.Label(pdf_card, text=t("home.card_pdf_title"), style="CardTitle.TLabel").pack(anchor="w")
         ttk.Label(
             pdf_card,
-            text="Extract readable text from every PDF page, keep page breaks, and save the result as a TXT file.",
+            text=t("home.card_pdf_text"),
             style="CardText.TLabel",
-            wraplength=260,
+            wraplength=300,
             justify="left",
         ).pack(anchor="w", fill="x", pady=(10, 18))
         ttk.Frame(pdf_card, style="Card.TFrame").pack(fill="both", expand=True)
-        ttk.Button(pdf_card, text="Open Tool", style="Primary.TButton", command=self.show_pdf_scanner).pack(anchor="w")
+        ttk.Button(pdf_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_pdf_scanner).pack(anchor="w")
+
+        cursor_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
+        cursor_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0), pady=(18, 0))
+        ttk.Label(cursor_card, text=t("home.card_cursor_title"), style="CardTitle.TLabel").pack(anchor="w")
+        ttk.Label(
+            cursor_card,
+            text=t("home.card_cursor_text"),
+            style="CardText.TLabel",
+            wraplength=300,
+            justify="left",
+        ).pack(anchor="w", fill="x", pady=(10, 18))
+        ttk.Frame(cursor_card, style="Card.TFrame").pack(fill="both", expand=True)
+        ttk.Button(cursor_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_cursor_skins).pack(anchor="w")
 
         return frame
+
+    def _handle_language_change(self, _event: tk.Event) -> None:
+        label_to_code = {label: code for code, label in LANGUAGE_LABELS.items()}
+        selected_code = label_to_code.get(self.language_var.get(), "zh")
+        current_view_name = self.current_view_name
+        set_language(selected_code)
+        self.language_var.set(LANGUAGE_LABELS[selected_code])
+        self._build_layout()
+        getattr(self, f"show_{current_view_name}", self.show_home)()
 
     def _show_view(self, view: ttk.Frame) -> None:
         # Only one view should be visible at a time, so hide the others first.
@@ -335,19 +396,28 @@ class ToolboxApp(tk.Tk):
         self.renamer_view.grid_forget()
         self.qr_view.grid_forget()
         self.pdf_view.grid_forget()
+        self.cursor_view.grid_forget()
         view.grid(row=0, column=0, sticky="nsew")
 
     def show_home(self) -> None:
+        self.current_view_name = "home"
         self._show_view(self.home_view)
 
     def show_renamer(self) -> None:
+        self.current_view_name = "renamer"
         self._show_view(self.renamer_view)
 
     def show_qr_generator(self) -> None:
+        self.current_view_name = "qr_generator"
         self._show_view(self.qr_view)
 
     def show_pdf_scanner(self) -> None:
+        self.current_view_name = "pdf_scanner"
         self._show_view(self.pdf_view)
+
+    def show_cursor_skins(self) -> None:
+        self.current_view_name = "cursor_skins"
+        self._show_view(self.cursor_view)
 
 
 def run() -> None:

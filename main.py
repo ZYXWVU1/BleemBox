@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from tkinter import messagebox
 
+from i18n import t
 
 PROJECT_DIR = Path(__file__).resolve().parent
 REQUIREMENTS_FILE = PROJECT_DIR / "requirements.txt"
@@ -60,10 +61,12 @@ def ensure_dependencies() -> None:
         )
     except subprocess.CalledProcessError as exc:
         messagebox.showerror(
-            "Bleem Box",
-            "The app could not install its required packages automatically.\n\n"
-            f"Please run:\n{sys.executable} -m pip install -r {REQUIREMENTS_FILE}\n\n"
-            f"Details: {exc}",
+            t("app.window_title"),
+            t(
+                "main.install_error",
+                command=f"{sys.executable} -m pip install -r {REQUIREMENTS_FILE}",
+                error=exc,
+            ),
         )
         raise SystemExit(exc.returncode) from exc
 

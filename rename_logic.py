@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
+from i18n import t
 
 @dataclass(frozen=True)
 class RenamePreview:
@@ -28,11 +29,11 @@ def build_rename_preview(
     # Build the list shown in the UI before any real rename happens.
     cleaned_name = base_name.strip()
     if not cleaned_name:
-        raise ValueError("Base name is required.")
+        raise ValueError(t("logic.rename.base_required"))
 
     files = _sorted_files(paths)
     if not files:
-        raise ValueError("Choose at least one file.")
+        raise ValueError(t("logic.rename.choose_files"))
 
     preview: list[RenamePreview] = []
     for index, path in enumerate(files, start=start_number):
@@ -53,7 +54,7 @@ def validate_preview(preview: Iterable[RenamePreview]) -> None:
     # Catch name collisions before touching the files on disk.
     rename_items = list(preview)
     if not rename_items:
-        raise ValueError("Nothing to rename.")
+        raise ValueError(t("logic.rename.nothing"))
 
     seen_names: set[str] = set()
     original_paths = {item.path.resolve() for item in rename_items}
@@ -61,12 +62,12 @@ def validate_preview(preview: Iterable[RenamePreview]) -> None:
     for item in rename_items:
         lowered_name = item.new_name.lower()
         if lowered_name in seen_names:
-            raise ValueError(f"Duplicate new name found: {item.new_name}")
+            raise ValueError(t("logic.rename.duplicate", name=item.new_name))
         seen_names.add(lowered_name)
 
         target_path = item.new_path.resolve()
         if target_path.exists() and target_path not in original_paths:
-            raise ValueError(f"Target file already exists: {item.new_name}")
+            raise ValueError(t("logic.rename.exists", name=item.new_name))
 
 
 def rename_files(preview: Iterable[RenamePreview]) -> int:

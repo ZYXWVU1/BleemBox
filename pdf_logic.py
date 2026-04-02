@@ -10,6 +10,7 @@ from pypdf import PdfReader
 import pypdfium2 as pdfium
 from PIL import Image, ImageOps
 
+from i18n import t
 
 OCR_RENDER_SCALE = 300 / 72
 _rapidocr_engine = None
@@ -67,7 +68,7 @@ def _ocr_box_height(item: list | tuple) -> float:
 
 def _extract_text_with_windows_ocr(image: Image.Image) -> tuple[str, str | None]:
     if sys.platform != "win32":
-        return "", "Windows OCR is only available on Windows."
+        return "", t("logic.pdf.windows_only")
 
     try:
         from winrt.windows.globalization import Language
@@ -75,7 +76,7 @@ def _extract_text_with_windows_ocr(image: Image.Image) -> tuple[str, str | None]
         from winrt.windows.media.ocr import OcrEngine
         from winrt.windows.storage.streams import DataWriter
     except ImportError:
-        return "", "Windows OCR packages are not installed."
+        return "", t("logic.pdf.windows_ocr_missing")
 
     processed_image = image.convert("RGBA")
 
@@ -105,9 +106,9 @@ def _extract_text_with_windows_ocr(image: Image.Image) -> tuple[str, str | None]
         text = asyncio.run(_recognize())
         if text:
             return text, None
-        return "", "Windows OCR ran, but it could not recognize text on the page."
+        return "", t("logic.pdf.windows_no_text")
     except Exception as exc:
-        return "", f"Windows OCR failed: {exc}"
+        return "", t("logic.pdf.windows_failed", error=exc)
     finally:
         processed_image.close()
 
@@ -116,17 +117,17 @@ def _extract_text_with_rapidocr(image: Image.Image) -> tuple[str, str | None]:
     try:
         engine = _get_rapidocr_engine()
     except ImportError:
-        return "", "RapidOCR is not installed."
+        return "", t("logic.pdf.rapidocr_missing")
 
     buffer = BytesIO()
     image.save(buffer, format="PNG")
     try:
         result, _elapsed = engine(buffer.getvalue())
     except Exception as exc:
-        return "", f"RapidOCR failed: {exc}"
+        return "", t("logic.pdf.rapidocr_failed", error=exc)
 
     if not result:
-        return "", "RapidOCR ran, but it could not recognize text on the page."
+        return "", t("logic.pdf.rapidocr_no_text")
 
     ordered_results = sorted(result, key=_ocr_sort_key)
 
@@ -156,7 +157,7 @@ def _extract_text_with_rapidocr(image: Image.Image) -> tuple[str, str | None]:
     normalized_text = _normalize_page_text("\n".join(lines))
     if normalized_text:
         return normalized_text, None
-    return "", "RapidOCR returned boxes, but no readable text remained after cleanup."
+    return "", t("logic.pdf.rapidocr_cleanup_empty")
 
 
 def _extract_text_with_ocr(pdf_document: pdfium.PdfDocument, page_index: int) -> tuple[str, str]:
@@ -172,10 +173,10 @@ def _extract_text_with_ocr(pdf_document: pdfium.PdfDocument, page_index: int) ->
 
         rapidocr_text, rapidocr_note = _extract_text_with_rapidocr(processed_image)
         if rapidocr_text:
-            return rapidocr_text, "RapidOCR"
+            return rapidocr_text, t("logic.pdf.source_rapidocr")
 
         failure_notes = [note for note in (windows_note, rapidocr_note) if note]
-        return "", " | ".join(failure_notes) if failure_notes else "OCR did not return any text."
+        return "", " | ".join(failure_notes) if failure_notes else t("logic.pdf.ocr_no_text")
     finally:
         processed_image.close()
         image.close()
@@ -185,13 +186,13 @@ def extract_pdf_text(pdf_path: str | Path) -> str:
     """Extract all text from a PDF and fall back to OCR for scanned pages."""
     path = Path(pdf_path)
     if path.suffix.lower() != ".pdf":
-        raise ValueError("Choose a PDF file first.")
+        raise ValueError(t("logic.pdf.choose_pdf"))
     if not path.is_file():
-        raise ValueError("The selected PDF file could not be found.")
+        raise ValueError(t("logic.pdf.not_found"))
 
     reader = PdfReader(str(path))
     if not reader.pages:
-        raise ValueError("This PDF has no pages to scan.")
+        raise ValueError(t("logic.pdf.no_pages"))
 
     page_sections: list[str] = []
     pdf_document: pdfium.PdfDocument | None = None
@@ -202,7 +203,7 @@ def extract_pdf_text(pdf_path: str | Path) -> str:
             raw_text = ""
 
         page_text = _normalize_page_text(raw_text)
-        extraction_source = "embedded PDF text"
+        extraction_source = t("logic.pdf.source_embedded")
         if not page_text:
             if pdf_document is None:
                 pdf_document = pdfium.PdfDocument(str(path))
@@ -210,11 +211,11 @@ def extract_pdf_text(pdf_path: str | Path) -> str:
                 page_text, extraction_source = _extract_text_with_ocr(pdf_document, page_number - 1)
             except Exception as exc:
                 page_text = ""
-                extraction_source = f"OCR failed: {exc}"
+                extraction_source = t("logic.pdf.ocr_failed", error=exc)
 
         if not page_text:
-            page_text = f"[No extractable text found on this page. Details: {extraction_source}]"
+            page_text = t("logic.pdf.no_text_details", details=extraction_source)
 
-        page_sections.append(f"----- Page {page_number} -----\n{page_text}")
+        page_sections.append(f"{t('logic.pdf.page_header', page=page_number)}\n{page_text}")
 
     return "\n\n".join(page_sections)

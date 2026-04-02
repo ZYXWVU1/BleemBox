@@ -1,0 +1,1 @@
+Replace this file with a real cursor file named `ibeam.cur` or `ibeam.ani`.

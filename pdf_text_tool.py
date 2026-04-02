@@ -4,6 +4,7 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
+from i18n import t
 from pdf_logic import extract_pdf_text
 
 
@@ -16,8 +17,8 @@ class PDFTextScannerView(ttk.Frame):
 
         self.selected_pdf_path: Path | None = None
         self.extracted_text = ""
-        self.status_var = tk.StringVar(value="Choose a PDF to scan its text.")
-        self.file_label_var = tk.StringVar(value="No PDF selected yet.")
+        self.status_var = tk.StringVar(value=t("pdf.status_initial"))
+        self.file_label_var = tk.StringVar(value=t("pdf.no_file"))
 
         self._build_layout()
 
@@ -29,13 +30,13 @@ class PDFTextScannerView(ttk.Frame):
         header.grid(row=0, column=0, sticky="ew")
         header.columnconfigure(0, weight=1)
 
-        ttk.Label(header, text="PDF Text Scanner", style="SectionTitle.TLabel").grid(row=0, column=0, sticky="w")
+        ttk.Label(header, text=t("pdf.title"), style="SectionTitle.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Label(
             header,
-            text="Open a PDF, extract the full text page by page, and use OCR automatically when a page is scanned.",
+            text=t("pdf.subtitle"),
             style="SectionText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(8, 0))
-        ttk.Button(header, text="Back to Home", style="Secondary.TButton", command=self.on_back_home).grid(
+        ttk.Button(header, text=t("common.back_home"), style="Secondary.TButton", command=self.on_back_home).grid(
             row=0, column=1, rowspan=2, sticky="e"
         )
 
@@ -43,7 +44,7 @@ class PDFTextScannerView(ttk.Frame):
         controls_card.grid(row=1, column=0, sticky="ew", padx=6, pady=(0, 14))
         controls_card.columnconfigure(0, weight=1)
 
-        ttk.Label(controls_card, text="Selected PDF", style="FieldLabel.TLabel").grid(row=0, column=0, sticky="w")
+        ttk.Label(controls_card, text=t("pdf.selected_pdf"), style="FieldLabel.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Label(
             controls_card,
             textvariable=self.file_label_var,
@@ -54,13 +55,13 @@ class PDFTextScannerView(ttk.Frame):
 
         action_row = ttk.Frame(controls_card, style="Card.TFrame")
         action_row.grid(row=2, column=0, sticky="w", pady=(18, 0))
-        ttk.Button(action_row, text="Choose PDF", style="Primary.TButton", command=self.choose_pdf).pack(
+        ttk.Button(action_row, text=t("pdf.choose_pdf"), style="Primary.TButton", command=self.choose_pdf).pack(
             side="left", padx=(0, 10)
         )
-        ttk.Button(action_row, text="Extract Text", style="Secondary.TButton", command=self.extract_text).pack(
+        ttk.Button(action_row, text=t("pdf.extract_text"), style="Secondary.TButton", command=self.extract_text).pack(
             side="left", padx=(0, 10)
         )
-        ttk.Button(action_row, text="Save TXT", style="Secondary.TButton", command=self.save_text).pack(side="left")
+        ttk.Button(action_row, text=t("pdf.save_txt"), style="Secondary.TButton", command=self.save_text).pack(side="left")
 
         status_box = ttk.Frame(controls_card, style="Card.TFrame", padding=0)
         status_box.grid(row=3, column=0, sticky="ew", pady=(18, 0))
@@ -73,7 +74,7 @@ class PDFTextScannerView(ttk.Frame):
         preview_card.columnconfigure(0, weight=1)
         preview_card.rowconfigure(1, weight=1)
 
-        ttk.Label(preview_card, text="Extracted Text", style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
+        ttk.Label(preview_card, text=t("pdf.extracted_text"), style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
 
         text_frame = ttk.Frame(preview_card, style="Card.TFrame")
         text_frame.grid(row=1, column=0, sticky="nsew", pady=(18, 0))
@@ -102,8 +103,8 @@ class PDFTextScannerView(ttk.Frame):
 
     def choose_pdf(self) -> None:
         pdf_path = filedialog.askopenfilename(
-            title="Choose PDF",
-            filetypes=[("PDF Files", "*.pdf")],
+            title=t("pdf.choose_dialog"),
+            filetypes=[(t("dialog.filetype_pdf"), "*.pdf")],
         )
         if not pdf_path:
             return
@@ -114,23 +115,23 @@ class PDFTextScannerView(ttk.Frame):
 
     def extract_text(self) -> None:
         if self.selected_pdf_path is None:
-            messagebox.showerror("PDF Text Scanner", "Choose a PDF first.")
+            messagebox.showerror(t("pdf.title"), t("pdf.choose_first"))
             return
 
         try:
             extracted_text = extract_pdf_text(self.selected_pdf_path)
         except Exception as exc:
-            messagebox.showerror("PDF Text Scanner", f"Could not extract text:\n{exc}")
+            messagebox.showerror(t("pdf.title"), t("pdf.extract_failed", error=exc))
             return
 
         self.extracted_text = extracted_text
         self.output_text.delete("1.0", "end")
         self.output_text.insert("1.0", extracted_text)
-        self.status_var.set(f"Extracted text from {self.selected_pdf_path.name}.")
+        self.status_var.set(t("pdf.extracted_status", name=self.selected_pdf_path.name))
 
     def save_text(self) -> None:
         if not self.extracted_text:
-            messagebox.showerror("PDF Text Scanner", "Extract text from a PDF first.")
+            messagebox.showerror(t("pdf.title"), t("pdf.extract_first"))
             return
 
         default_name = "pdf_text.txt"
@@ -138,14 +139,14 @@ class PDFTextScannerView(ttk.Frame):
             default_name = f"{self.selected_pdf_path.stem}.txt"
 
         save_path = filedialog.asksaveasfilename(
-            title="Save Extracted Text",
+            title=t("pdf.save_dialog"),
             defaultextension=".txt",
-            filetypes=[("Text Files", "*.txt")],
+            filetypes=[(t("dialog.filetype_text"), "*.txt")],
             initialfile=default_name,
         )
         if not save_path:
             return
 
         Path(save_path).write_text(self.extracted_text, encoding="utf-8")
-        self.status_var.set(f"Saved extracted text to {Path(save_path).name}.")
-        messagebox.showinfo("PDF Text Scanner", f"Saved extracted text to:\n{save_path}")
+        self.status_var.set(t("pdf.saved_status", name=Path(save_path).name))
+        messagebox.showinfo(t("pdf.title"), t("pdf.saved_info", path=save_path))

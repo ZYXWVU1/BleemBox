@@ -6,6 +6,7 @@ from tkinter import filedialog, messagebox, ttk
 
 from PIL import ImageTk
 
+from i18n import t
 from qr_logic import build_qr_image
 
 
@@ -18,7 +19,7 @@ class QRCodeGeneratorView(ttk.Frame):
 
         # These values hold the current link and the last QR image that was generated.
         self.qr_input_var = tk.StringVar()
-        self.qr_status_var = tk.StringVar(value="Paste a link to generate a QR code.")
+        self.qr_status_var = tk.StringVar(value=t("qr.status_initial"))
         self.qr_image = None
         self.qr_photo: ImageTk.PhotoImage | None = None
 
@@ -33,13 +34,13 @@ class QRCodeGeneratorView(ttk.Frame):
         header.grid(row=0, column=0, sticky="ew")
         header.columnconfigure(0, weight=1)
 
-        ttk.Label(header, text="QR Code Generator", style="SectionTitle.TLabel").grid(row=0, column=0, sticky="w")
+        ttk.Label(header, text=t("qr.title"), style="SectionTitle.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Label(
             header,
-            text="Paste a link to a website page, then generate a QR code to share and scan.",
+            text=t("qr.subtitle"),
             style="SectionText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(8, 0))
-        ttk.Button(header, text="Back to Home", style="Secondary.TButton", command=self.on_back_home).grid(
+        ttk.Button(header, text=t("common.back_home"), style="Secondary.TButton", command=self.on_back_home).grid(
             row=0, column=1, rowspan=2, sticky="e"
         )
 
@@ -53,10 +54,10 @@ class QRCodeGeneratorView(ttk.Frame):
         controls_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
         controls_card.columnconfigure(0, weight=1)
 
-        ttk.Label(controls_card, text="Link", style="FieldLabel.TLabel").grid(row=0, column=0, sticky="w")
+        ttk.Label(controls_card, text=t("qr.label_link"), style="FieldLabel.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Label(
             controls_card,
-            text="Use any link that opens a website, image, playlist, song, or video.",
+            text=t("qr.link_help"),
             style="CardText.TLabel",
             wraplength=340,
             justify="left",
@@ -68,17 +69,17 @@ class QRCodeGeneratorView(ttk.Frame):
         quick_links.grid(row=3, column=0, sticky="w", pady=(14, 0))
         ttk.Button(
             quick_links,
-            text="Website Example",
+            text=t("qr.website_example"),
             style="Secondary.TButton",
             command=lambda: self._set_qr_link("https://www.wikipedia.org/"),
         ).pack(side="left", padx=(0, 10))
 
         action_row = ttk.Frame(controls_card, style="Card.TFrame")
         action_row.grid(row=4, column=0, sticky="w", pady=(18, 0))
-        ttk.Button(action_row, text="Generate QR Code", style="Primary.TButton", command=self.generate_qr_code).pack(
+        ttk.Button(action_row, text=t("qr.generate"), style="Primary.TButton", command=self.generate_qr_code).pack(
             side="left", padx=(0, 10)
         )
-        ttk.Button(action_row, text="Save PNG", style="Secondary.TButton", command=self.save_qr_code).pack(side="left")
+        ttk.Button(action_row, text=t("qr.save_png"), style="Secondary.TButton", command=self.save_qr_code).pack(side="left")
 
         status_box = ttk.Frame(controls_card, style="Card.TFrame", padding=0)
         status_box.grid(row=5, column=0, sticky="ew", pady=(18, 0))
@@ -91,10 +92,10 @@ class QRCodeGeneratorView(ttk.Frame):
         preview_card.columnconfigure(0, weight=1)
         preview_card.rowconfigure(1, weight=1)
 
-        ttk.Label(preview_card, text="QR Preview", style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
+        ttk.Label(preview_card, text=t("qr.preview"), style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
         self.qr_preview_label = ttk.Label(
             preview_card,
-            text="Your QR code will appear here.",
+            text=t("qr.preview_placeholder"),
             style="PreviewText.TLabel",
             anchor="center",
             justify="center",
@@ -110,7 +111,7 @@ class QRCodeGeneratorView(ttk.Frame):
         try:
             qr_image = build_qr_image(self.qr_input_var.get())
         except ValueError as exc:
-            messagebox.showerror("QR Code Generator", str(exc))
+            messagebox.showerror(t("qr.title"), str(exc))
             return
 
         preview_image = qr_image.copy()
@@ -119,23 +120,23 @@ class QRCodeGeneratorView(ttk.Frame):
         self.qr_image = qr_image
         self.qr_photo = ImageTk.PhotoImage(preview_image)
         self.qr_preview_label.configure(image=self.qr_photo, text="")
-        self.qr_status_var.set("QR code ready. Save it as a PNG or scan it now.")
+        self.qr_status_var.set(t("qr.ready"))
 
     def save_qr_code(self) -> None:
         # Save the full-size QR image as a PNG file.
         if self.qr_image is None:
-            messagebox.showerror("QR Code Generator", "Generate a QR code first.")
+            messagebox.showerror(t("qr.title"), t("qr.generate_first"))
             return
 
         save_path = filedialog.asksaveasfilename(
-            title="Save QR Code",
+            title=t("qr.save_dialog"),
             defaultextension=".png",
-            filetypes=[("PNG Image", "*.png")],
+            filetypes=[(t("dialog.filetype_png"), "*.png")],
             initialfile="qr_code.png",
         )
         if not save_path:
             return
 
         self.qr_image.save(save_path, format="PNG")
-        self.qr_status_var.set(f"Saved QR code to {Path(save_path).name}.")
-        messagebox.showinfo("QR Code Generator", f"Saved QR code to:\n{save_path}")
+        self.qr_status_var.set(t("qr.saved_status", name=Path(save_path).name))
+        messagebox.showinfo(t("qr.title"), t("qr.saved_info", path=save_path))

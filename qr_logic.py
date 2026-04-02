@@ -5,12 +5,13 @@ from io import BytesIO
 import qrcode
 from PIL import Image
 
+from i18n import t
 
 def build_qr_image(data: str, box_size: int = 10, border: int = 4) -> Image.Image:
     """Create a QR image for a URL or any other text payload."""
     cleaned_data = data.strip()
     if not cleaned_data:
-        raise ValueError("Enter a website or direct link first.")
+        raise ValueError(t("logic.qr.empty"))
 
     qr = qrcode.QRCode(
         version=None,
