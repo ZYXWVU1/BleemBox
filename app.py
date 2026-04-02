@@ -9,6 +9,7 @@ from cursor_skin_tool import CursorSkinToolView
 from i18n import LANGUAGE_LABELS, get_language, set_language, t
 from pdf_text_tool import PDFTextScannerView
 from qr_code_tool import QRCodeGeneratorView
+from ui_fonts import ui_font, ui_font_family
 
 
 def enable_windows_dpi_awareness() -> None:
@@ -49,7 +50,7 @@ class ToolboxApp(tk.Tk):
         style = ttk.Style(self)
         style.theme_use("clam")
 
-        self.option_add("*Font", "{Segoe UI} 10")
+        self.option_add("*Font", f"{{{ui_font_family()}}} 10")
 
         style.configure("Shell.TFrame", background="#f4efe7")
         style.configure("Sidebar.TFrame", background="#1d2a36")
@@ -61,80 +62,80 @@ class ToolboxApp(tk.Tk):
             "AppTitle.TLabel",
             background="#1d2a36",
             foreground="#fffaf4",
-            font=("Segoe UI Semibold", 22),
+            font=ui_font(22, bold=True),
         )
         style.configure(
             "SidebarText.TLabel",
             background="#1d2a36",
             foreground="#cfd7df",
-            font=("Segoe UI", 10),
+            font=ui_font(10),
         )
         style.configure(
             "SidebarBadge.TLabel",
             background="#304657",
             foreground="#f8d9b8",
-            font=("Segoe UI Semibold", 9),
+            font=ui_font(9, bold=True),
             padding=(10, 4),
         )
         style.configure(
             "ToolbarLabel.TLabel",
             background="#f7f2eb",
             foreground="#5e666d",
-            font=("Segoe UI Semibold", 10),
+            font=ui_font(10, bold=True),
         )
         style.configure(
             "Eyebrow.TLabel",
             background="#f7f2eb",
             foreground="#b45b30",
-            font=("Segoe UI Semibold", 9),
+            font=ui_font(9, bold=True),
         )
         style.configure(
             "SectionTitle.TLabel",
             background="#f7f2eb",
             foreground="#1f2a33",
-            font=("Segoe UI Semibold", 28),
+            font=ui_font(28, bold=True),
         )
         style.configure(
             "SectionText.TLabel",
             background="#f7f2eb",
             foreground="#6b756d",
-            font=("Segoe UI", 11),
+            font=ui_font(11),
         )
         style.configure(
             "CardTitle.TLabel",
             background="#fffaf4",
             foreground="#1f2a33",
-            font=("Segoe UI Semibold", 17),
+            font=ui_font(17, bold=True),
         )
         style.configure(
             "CardText.TLabel",
             background="#fffaf4",
             foreground="#667074",
-            font=("Segoe UI", 10),
+            font=ui_font(10),
         )
         style.configure(
             "CardBadge.TLabel",
             background="#fffaf4",
             foreground="#c06836",
-            font=("Segoe UI Semibold", 9),
+            font=ui_font(9, bold=True),
         )
         style.configure(
             "FieldLabel.TLabel",
             background="#fffaf4",
             foreground="#30414d",
-            font=("Segoe UI Semibold", 10),
+            font=ui_font(10, bold=True),
         )
         style.configure(
             "Status.TLabel",
             background="#f4e2d3",
             foreground="#8b4b25",
-            font=("Segoe UI", 10),
+            font=ui_font(10),
         )
         style.configure(
             "PreviewText.TLabel",
             background="#fffaf4",
             foreground="#7a847b",
-            font=("Segoe UI", 10),
+            font=ui_font(10),
         )
 
         style.configure(
@@ -145,7 +146,7 @@ class ToolboxApp(tk.Tk):
             focuscolor="#1d2a36",
             anchor="w",
             padding=(16, 12),
-            font=("Segoe UI Semibold", 10),
+            font=ui_font(10, bold=True),
         )
         style.map(
             "Nav.TButton",
@@ -160,7 +161,7 @@ class ToolboxApp(tk.Tk):
             borderwidth=0,
             focuscolor="#c76838",
             padding=(18, 11),
-            font=("Segoe UI Semibold", 10),
+            font=ui_font(10, bold=True),
         )
         style.map(
             "Primary.TButton",
@@ -175,7 +176,7 @@ class ToolboxApp(tk.Tk):
             borderwidth=0,
             focuscolor="#ece1d3",
             padding=(16, 11),
-            font=("Segoe UI Semibold", 10),
+            font=ui_font(10, bold=True),
         )
         style.map(
             "Secondary.TButton",
@@ -203,7 +204,7 @@ class ToolboxApp(tk.Tk):
             "Modern.TCheckbutton",
             background="#fffaf4",
             foreground="#30414d",
-            font=("Segoe UI", 10),
+            font=ui_font(10),
         )
         style.map(
             "Modern.TCheckbutton",
@@ -218,14 +219,14 @@ class ToolboxApp(tk.Tk):
             foreground="#22303a",
             borderwidth=0,
             rowheight=36,
-            font=("Segoe UI", 10),
+            font=ui_font(10),
         )
         style.configure(
             "Clean.Treeview.Heading",
             background="#efe4d7",
             foreground="#24313b",
             borderwidth=0,
-            font=("Segoe UI Semibold", 10),
+            font=ui_font(10, bold=True),
         )
         style.map(
             "Clean.Treeview",
@@ -387,6 +388,7 @@ class ToolboxApp(tk.Tk):
         current_view_name = self.current_view_name
         set_language(selected_code)
         self.language_var.set(LANGUAGE_LABELS[selected_code])
+        self._build_styles()
         self._build_layout()
         getattr(self, f"show_{current_view_name}", self.show_home)()
 

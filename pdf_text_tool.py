@@ -6,6 +6,7 @@ from tkinter import filedialog, messagebox, ttk
 
 from i18n import t
 from pdf_logic import extract_pdf_text
+from ui_fonts import ui_font
 
 
 class PDFTextScannerView(ttk.Frame):
@@ -84,7 +85,7 @@ class PDFTextScannerView(ttk.Frame):
         self.output_text = tk.Text(
             text_frame,
             wrap="word",
-            font=("Segoe UI", 10),
+            font=ui_font(10),
             relief="flat",
             borderwidth=0,
             background="#fffdf9",
