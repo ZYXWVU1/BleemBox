@@ -38,7 +38,7 @@ class QRCodeGeneratorView(ttk.Frame):
             header,
             text="Paste a link to a website page, then generate a QR code to share and scan.",
             style="SectionText.TLabel",
-        ).grid(row=1, column=0, sticky="w", pady=(6, 0))
+        ).grid(row=1, column=0, sticky="w", pady=(8, 0))
         ttk.Button(header, text="Back to Home", style="Secondary.TButton", command=self.on_back_home).grid(
             row=0, column=1, rowspan=2, sticky="e"
         )
@@ -62,7 +62,7 @@ class QRCodeGeneratorView(ttk.Frame):
             justify="left",
         ).grid(row=1, column=0, sticky="w", pady=(6, 12))
 
-        ttk.Entry(controls_card, textvariable=self.qr_input_var).grid(row=2, column=0, sticky="ew")
+        ttk.Entry(controls_card, textvariable=self.qr_input_var, style="Modern.TEntry").grid(row=2, column=0, sticky="ew")
 
         quick_links = ttk.Frame(controls_card, style="Card.TFrame")
         quick_links.grid(row=3, column=0, sticky="w", pady=(14, 0))
@@ -95,7 +95,7 @@ class QRCodeGeneratorView(ttk.Frame):
         self.qr_preview_label = ttk.Label(
             preview_card,
             text="Your QR code will appear here.",
-            style="CardText.TLabel",
+            style="PreviewText.TLabel",
             anchor="center",
             justify="center",
         )

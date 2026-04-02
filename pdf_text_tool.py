@@ -34,7 +34,7 @@ class PDFTextScannerView(ttk.Frame):
             header,
             text="Open a PDF, extract the full text page by page, and use OCR automatically when a page is scanned.",
             style="SectionText.TLabel",
-        ).grid(row=1, column=0, sticky="w", pady=(6, 0))
+        ).grid(row=1, column=0, sticky="w", pady=(8, 0))
         ttk.Button(header, text="Back to Home", style="Secondary.TButton", command=self.on_back_home).grid(
             row=0, column=1, rowspan=2, sticky="e"
         )
@@ -86,6 +86,10 @@ class PDFTextScannerView(ttk.Frame):
             font=("Segoe UI", 10),
             relief="flat",
             borderwidth=0,
+            background="#fffdf9",
+            foreground="#21303a",
+            insertbackground="#21303a",
+            selectbackground="#f1d7c2",
             padx=12,
             pady=12,
             undo=False,

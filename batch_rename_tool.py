@@ -38,7 +38,7 @@ class BatchRenamerView(ttk.Frame):
             header,
             text="Select files, preview the new names, then rename everything in one step.",
             style="SectionText.TLabel",
-        ).grid(row=1, column=0, sticky="w", pady=(6, 0))
+        ).grid(row=1, column=0, sticky="w", pady=(8, 0))
         ttk.Button(header, text="Back to Home", style="Secondary.TButton", command=self.on_back_home).grid(
             row=0, column=1, rowspan=2, sticky="e"
         )
@@ -54,16 +54,20 @@ class BatchRenamerView(ttk.Frame):
         )
 
         ttk.Label(controls_card, text="Base name", style="FieldLabel.TLabel").grid(row=0, column=1, sticky="w")
-        ttk.Entry(controls_card, textvariable=self.base_name_var).grid(row=1, column=1, sticky="ew", padx=(0, 18), pady=(8, 0))
+        ttk.Entry(controls_card, textvariable=self.base_name_var, style="Modern.TEntry").grid(
+            row=1, column=1, sticky="ew", padx=(0, 18), pady=(8, 0)
+        )
 
         ttk.Label(controls_card, text="Start number", style="FieldLabel.TLabel").grid(row=0, column=2, sticky="w")
-        ttk.Entry(controls_card, textvariable=self.start_number_var, width=10).grid(
+        ttk.Entry(controls_card, textvariable=self.start_number_var, width=10, style="Modern.TEntry").grid(
             row=1, column=2, sticky="w", padx=(0, 18), pady=(8, 0)
         )
 
         options = ttk.Frame(controls_card, style="Card.TFrame")
         options.grid(row=1, column=3, sticky="w", pady=(8, 0))
-        ttk.Checkbutton(options, text="Keep file extensions", variable=self.keep_extension_var).pack(anchor="w")
+        ttk.Checkbutton(options, text="Keep file extensions", variable=self.keep_extension_var, style="Modern.TCheckbutton").pack(
+            anchor="w"
+        )
 
         action_row = ttk.Frame(controls_card, style="Card.TFrame")
         action_row.grid(row=2, column=0, columnspan=4, sticky="w", pady=(18, 0))

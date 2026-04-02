@@ -25,10 +25,10 @@ class ToolboxApp(tk.Tk):
 
     def __init__(self) -> None:
         super().__init__()
-        self.title("Desktop Toolbox")
+        self.title("Bleem Box")
         self.geometry("1080x700")
         self.minsize(920, 620)
-        self.configure(bg="#dbe4ea")
+        self.configure(bg="#f4efe7")
 
         try:
             self.tk.call("tk", "scaling", self.winfo_fpixels("1i") / 72.0)
@@ -46,137 +46,180 @@ class ToolboxApp(tk.Tk):
 
         self.option_add("*Font", "{Segoe UI} 10")
 
-        style.configure("Shell.TFrame", background="#dbe4ea")
-        style.configure("Sidebar.TFrame", background="#17324d")
-        style.configure("Panel.TFrame", background="#f6f8fb")
-        style.configure("Card.TFrame", background="#ffffff")
-        style.configure("Hero.TFrame", background="#12304a")
+        style.configure("Shell.TFrame", background="#f4efe7")
+        style.configure("Sidebar.TFrame", background="#1d2a36")
+        style.configure("Panel.TFrame", background="#f7f2eb")
+        style.configure("Card.TFrame", background="#fffaf4", relief="flat")
+        style.configure("Muted.TFrame", background="#efe5d7")
 
         style.configure(
             "AppTitle.TLabel",
-            background="#17324d",
-            foreground="#f8fafc",
-            font=("Segoe UI Semibold", 20),
-        )
-        style.configure(
-            "SidebarText.TLabel",
-            background="#17324d",
-            foreground="#c8d6e5",
-            font=("Segoe UI", 10),
-        )
-        style.configure(
-            "HeroTitle.TLabel",
-            background="#12304a",
-            foreground="#ffffff",
-            font=("Segoe UI Semibold", 24),
-        )
-        style.configure(
-            "HeroText.TLabel",
-            background="#12304a",
-            foreground="#d9e6f2",
-            font=("Segoe UI", 11),
-        )
-        style.configure(
-            "SectionTitle.TLabel",
-            background="#f6f8fb",
-            foreground="#1f2937",
+            background="#1d2a36",
+            foreground="#fffaf4",
             font=("Segoe UI Semibold", 22),
         )
         style.configure(
-            "SectionText.TLabel",
-            background="#f6f8fb",
-            foreground="#526071",
+            "SidebarText.TLabel",
+            background="#1d2a36",
+            foreground="#cfd7df",
             font=("Segoe UI", 10),
+        )
+        style.configure(
+            "SidebarBadge.TLabel",
+            background="#304657",
+            foreground="#f8d9b8",
+            font=("Segoe UI Semibold", 9),
+            padding=(10, 4),
+        )
+        style.configure(
+            "Eyebrow.TLabel",
+            background="#f7f2eb",
+            foreground="#b45b30",
+            font=("Segoe UI Semibold", 9),
+        )
+        style.configure(
+            "SectionTitle.TLabel",
+            background="#f7f2eb",
+            foreground="#1f2a33",
+            font=("Segoe UI Semibold", 28),
+        )
+        style.configure(
+            "SectionText.TLabel",
+            background="#f7f2eb",
+            foreground="#6b756d",
+            font=("Segoe UI", 11),
         )
         style.configure(
             "CardTitle.TLabel",
-            background="#ffffff",
-            foreground="#16324f",
-            font=("Segoe UI Semibold", 15),
+            background="#fffaf4",
+            foreground="#1f2a33",
+            font=("Segoe UI Semibold", 17),
         )
         style.configure(
             "CardText.TLabel",
-            background="#ffffff",
-            foreground="#617182",
+            background="#fffaf4",
+            foreground="#667074",
             font=("Segoe UI", 10),
         )
         style.configure(
+            "CardBadge.TLabel",
+            background="#fffaf4",
+            foreground="#c06836",
+            font=("Segoe UI Semibold", 9),
+        )
+        style.configure(
             "FieldLabel.TLabel",
-            background="#ffffff",
-            foreground="#334155",
+            background="#fffaf4",
+            foreground="#30414d",
             font=("Segoe UI Semibold", 10),
         )
         style.configure(
             "Status.TLabel",
-            background="#eef4f8",
-            foreground="#35516c",
+            background="#f4e2d3",
+            foreground="#8b4b25",
+            font=("Segoe UI", 10),
+        )
+        style.configure(
+            "PreviewText.TLabel",
+            background="#fffaf4",
+            foreground="#7a847b",
             font=("Segoe UI", 10),
         )
 
         style.configure(
             "Nav.TButton",
-            background="#17324d",
-            foreground="#f8fafc",
+            background="#1d2a36",
+            foreground="#f4efe7",
             borderwidth=0,
-            focuscolor="#17324d",
-            padding=(14, 10),
+            focuscolor="#1d2a36",
+            anchor="w",
+            padding=(16, 12),
             font=("Segoe UI Semibold", 10),
         )
         style.map(
             "Nav.TButton",
-            background=[("active", "#244868"), ("pressed", "#244868")],
-            foreground=[("active", "#ffffff")],
+            background=[("active", "#304657"), ("pressed", "#304657")],
+            foreground=[("active", "#fffaf4")],
         )
 
         style.configure(
             "Primary.TButton",
-            background="#1f6aa5",
-            foreground="#ffffff",
+            background="#c76838",
+            foreground="#fffaf4",
             borderwidth=0,
-            focuscolor="#1f6aa5",
-            padding=(18, 10),
+            focuscolor="#c76838",
+            padding=(18, 11),
             font=("Segoe UI Semibold", 10),
         )
         style.map(
             "Primary.TButton",
-            background=[("active", "#2b7ebb"), ("pressed", "#195886")],
-            foreground=[("active", "#ffffff")],
+            background=[("active", "#d67745"), ("pressed", "#b55a2e")],
+            foreground=[("active", "#fffaf4")],
         )
 
         style.configure(
             "Secondary.TButton",
-            background="#e6edf3",
-            foreground="#1f2937",
+            background="#ece1d3",
+            foreground="#24313b",
             borderwidth=0,
-            focuscolor="#e6edf3",
-            padding=(16, 10),
+            focuscolor="#ece1d3",
+            padding=(16, 11),
             font=("Segoe UI Semibold", 10),
         )
         style.map(
             "Secondary.TButton",
-            background=[("active", "#d5e0e8"), ("pressed", "#c8d4dd")],
+            background=[("active", "#e5d6c4"), ("pressed", "#dbcab6")],
+        )
+
+        style.configure(
+            "Modern.TEntry",
+            fieldbackground="#fffdf9",
+            foreground="#1f2a33",
+            bordercolor="#dbcab6",
+            lightcolor="#dbcab6",
+            darkcolor="#dbcab6",
+            relief="flat",
+            padding=(10, 8),
+        )
+        style.map(
+            "Modern.TEntry",
+            bordercolor=[("focus", "#c76838")],
+            lightcolor=[("focus", "#c76838")],
+            darkcolor=[("focus", "#c76838")],
+        )
+
+        style.configure(
+            "Modern.TCheckbutton",
+            background="#fffaf4",
+            foreground="#30414d",
+            font=("Segoe UI", 10),
+        )
+        style.map(
+            "Modern.TCheckbutton",
+            background=[("active", "#fffaf4")],
+            foreground=[("active", "#30414d")],
         )
 
         style.configure(
             "Clean.Treeview",
-            background="#ffffff",
-            fieldbackground="#ffffff",
-            foreground="#1f2937",
+            background="#fffdf9",
+            fieldbackground="#fffdf9",
+            foreground="#22303a",
             borderwidth=0,
-            rowheight=32,
+            rowheight=36,
             font=("Segoe UI", 10),
         )
         style.configure(
             "Clean.Treeview.Heading",
-            background="#eaf1f6",
-            foreground="#16324f",
+            background="#efe4d7",
+            foreground="#24313b",
             borderwidth=0,
             font=("Segoe UI Semibold", 10),
         )
         style.map(
             "Clean.Treeview",
-            background=[("selected", "#d8e9f7")],
-            foreground=[("selected", "#16324f")],
+            background=[("selected", "#f1d7c2")],
+            foreground=[("selected", "#24313b")],
         )
 
     def _build_layout(self) -> None:
@@ -189,13 +232,15 @@ class ToolboxApp(tk.Tk):
         sidebar = ttk.Frame(shell, style="Sidebar.TFrame", padding=22)
         sidebar.grid(row=0, column=0, sticky="ns", padx=(0, 18))
 
+        ttk.Label(sidebar, text="DESKTOP TOOLBOX", style="SidebarBadge.TLabel").pack(anchor="w")
         ttk.Label(sidebar, text="Bleem Box", style="AppTitle.TLabel").pack(anchor="w")
         ttk.Label(
             sidebar,
-            text="Open one place,\nlaunch the tools you need.",
+            text="Clean utilities for quick desktop tasks.",
             style="SidebarText.TLabel",
             justify="left",
-        ).pack(anchor="w", pady=(8, 24))
+            wraplength=190,
+        ).pack(anchor="w", pady=(10, 24))
 
         ttk.Button(sidebar, text="Home", style="Nav.TButton", command=self.show_home).pack(fill="x", pady=(0, 8))
         ttk.Button(sidebar, text="Batch file renaming", style="Nav.TButton", command=self.show_renamer).pack(fill="x")
@@ -219,12 +264,25 @@ class ToolboxApp(tk.Tk):
 
     def _build_home_view(self, parent: ttk.Frame) -> ttk.Frame:
         # The home screen acts like a launcher for all tools in the toolbox.
-        frame = ttk.Frame(parent, style="Panel.TFrame", padding=6)
+        frame = ttk.Frame(parent, style="Panel.TFrame", padding=10)
         frame.columnconfigure(0, weight=1)
-        frame.rowconfigure(0, weight=1)
+        frame.rowconfigure(1, weight=1)
+
+        intro = ttk.Frame(frame, style="Panel.TFrame", padding=(6, 6, 6, 22))
+        intro.grid(row=0, column=0, sticky="ew")
+        intro.columnconfigure(0, weight=1)
+
+        ttk.Label(intro, text="Pick the utility you want to open.", style="SectionTitle.TLabel").grid(
+            row=0, column=0, sticky="w", pady=(4, 0)
+        )
+        ttk.Label(
+            intro,
+            text="Each card opens directly into its workspace with the same updated design system across the app.",
+            style="SectionText.TLabel",
+        ).grid(row=1, column=0, sticky="w", pady=(8, 0))
 
         cards = ttk.Frame(frame, style="Panel.TFrame", padding=6)
-        cards.grid(row=0, column=0, sticky="nsew")
+        cards.grid(row=1, column=0, sticky="nsew")
         cards.columnconfigure(0, weight=1)
         cards.columnconfigure(1, weight=1)
         cards.columnconfigure(2, weight=1)
@@ -232,8 +290,6 @@ class ToolboxApp(tk.Tk):
 
         renamer_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
         renamer_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=0)
-        renamer_card.columnconfigure(0, weight=1)
-        renamer_card.rowconfigure(1, weight=1)
         ttk.Label(renamer_card, text="Batch File Renaming", style="CardTitle.TLabel").pack(anchor="w")
         ttk.Label(
             renamer_card,
@@ -242,12 +298,11 @@ class ToolboxApp(tk.Tk):
             wraplength=250,
             justify="left",
         ).pack(anchor="w", fill="x", pady=(10, 18))
-        ttk.Button(renamer_card, text="Open Tool", style="Primary.TButton", command=self.show_renamer).pack(anchor="center")
+        ttk.Frame(renamer_card, style="Card.TFrame").pack(fill="both", expand=True)
+        ttk.Button(renamer_card, text="Open Tool", style="Primary.TButton", command=self.show_renamer).pack(anchor="w")
 
         qr_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
         qr_card.grid(row=0, column=1, sticky="nsew", padx=10, pady=0)
-        qr_card.columnconfigure(0, weight=1)
-        qr_card.rowconfigure(1, weight=1)
         ttk.Label(qr_card, text="QR Code Generator", style="CardTitle.TLabel").pack(anchor="w")
         ttk.Label(
             qr_card,
@@ -256,12 +311,11 @@ class ToolboxApp(tk.Tk):
             wraplength=260,
             justify="left",
         ).pack(anchor="w", fill="x", pady=(10, 18))
-        ttk.Button(qr_card, text="Open Tool", style="Primary.TButton", command=self.show_qr_generator).pack(anchor="center")
+        ttk.Frame(qr_card, style="Card.TFrame").pack(fill="both", expand=True)
+        ttk.Button(qr_card, text="Open Tool", style="Primary.TButton", command=self.show_qr_generator).pack(anchor="w")
 
         pdf_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
         pdf_card.grid(row=0, column=2, sticky="nsew", padx=(10, 0), pady=0)
-        pdf_card.columnconfigure(0, weight=1)
-        pdf_card.rowconfigure(1, weight=1)
         ttk.Label(pdf_card, text="PDF Text Scanner", style="CardTitle.TLabel").pack(anchor="w")
         ttk.Label(
             pdf_card,
@@ -270,7 +324,8 @@ class ToolboxApp(tk.Tk):
             wraplength=260,
             justify="left",
         ).pack(anchor="w", fill="x", pady=(10, 18))
-        ttk.Button(pdf_card, text="Open Tool", style="Primary.TButton", command=self.show_pdf_scanner).pack(anchor="center")
+        ttk.Frame(pdf_card, style="Card.TFrame").pack(fill="both", expand=True)
+        ttk.Button(pdf_card, text="Open Tool", style="Primary.TButton", command=self.show_pdf_scanner).pack(anchor="w")
 
         return frame
 
