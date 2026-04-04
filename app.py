@@ -7,8 +7,10 @@ from tkinter import ttk
 from batch_rename_tool import BatchRenamerView
 from cursor_skin_tool import CursorSkinToolView
 from i18n import LANGUAGE_LABELS, get_language, set_language, t
+from pdf_merge_tool import PDFMergeToolView
 from pdf_text_tool import PDFTextScannerView
 from qr_code_tool import QRCodeGeneratorView
+from scrollable_panel import ScrollablePanel
 from ui_fonts import ui_font, ui_font_family
 
 
@@ -29,8 +31,8 @@ class ToolboxApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title(t("app.window_title"))
-        self.geometry("1080x700")
-        self.minsize(920, 620)
+        self.geometry("1260x840")
+        self.minsize(1080, 760)
         self.configure(bg="#f4efe7")
         self.main_shell: ttk.Frame | None = None
         self.language_var = tk.StringVar(value=LANGUAGE_LABELS[get_language()])
@@ -266,6 +268,9 @@ class ToolboxApp(tk.Tk):
         ttk.Button(sidebar, text=t("app.nav_pdf"), style="Nav.TButton", command=self.show_pdf_scanner).pack(
             fill="x", pady=(8, 0)
         )
+        ttk.Button(sidebar, text=t("app.nav_pdf_merge"), style="Nav.TButton", command=self.show_pdf_merger).pack(
+            fill="x", pady=(8, 0)
+        )
         ttk.Button(sidebar, text=t("app.nav_cursor"), style="Nav.TButton", command=self.show_cursor_skins).pack(
             fill="x", pady=(8, 0)
         )
@@ -300,15 +305,17 @@ class ToolboxApp(tk.Tk):
         self.renamer_view = BatchRenamerView(self.content, self.show_home)
         self.qr_view = QRCodeGeneratorView(self.content, self.show_home)
         self.pdf_view = PDFTextScannerView(self.content, self.show_home)
+        self.pdf_merge_view = PDFMergeToolView(self.content, self.show_home)
         self.cursor_view = CursorSkinToolView(self.content, self.show_home)
 
     def _build_home_view(self, parent: ttk.Frame) -> ttk.Frame:
         # The home screen acts like a launcher for all tools in the toolbox.
-        frame = ttk.Frame(parent, style="Panel.TFrame", padding=10)
-        frame.columnconfigure(0, weight=1)
-        frame.rowconfigure(1, weight=1)
+        frame = ScrollablePanel(parent, canvas_background="#f7f2eb")
+        surface = frame.content
+        surface.columnconfigure(0, weight=1)
+        surface.rowconfigure(2, weight=1)
 
-        intro = ttk.Frame(frame, style="Panel.TFrame", padding=(6, 6, 6, 22))
+        intro = ttk.Frame(surface, style="Panel.TFrame", padding=(16, 10, 16, 20))
         intro.grid(row=0, column=0, sticky="ew")
         intro.columnconfigure(0, weight=1)
 
@@ -319,14 +326,48 @@ class ToolboxApp(tk.Tk):
             intro,
             text=t("home.subtitle"),
             style="SectionText.TLabel",
+            wraplength=820,
+            justify="left",
         ).grid(row=1, column=0, sticky="w", pady=(8, 0))
 
-        cards = ttk.Frame(frame, style="Panel.TFrame", padding=6)
-        cards.grid(row=1, column=0, sticky="nsew")
+        quick_jump = ttk.Frame(surface, style="Card.TFrame", padding=22)
+        quick_jump.grid(row=1, column=0, sticky="ew", padx=16, pady=(0, 12))
+        quick_jump.columnconfigure(0, weight=1)
+        quick_jump.columnconfigure(1, weight=1)
+        quick_jump.columnconfigure(2, weight=1)
+
+        ttk.Label(quick_jump, text=t("home.quick_jump"), style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
+        ttk.Label(
+            quick_jump,
+            text=t("home.quick_jump_help"),
+            style="CardText.TLabel",
+            wraplength=760,
+            justify="left",
+        ).grid(row=1, column=0, columnspan=3, sticky="w", pady=(8, 18))
+
+        quick_buttons = (
+            (t("home.card_renamer_title"), self.show_renamer),
+            (t("home.card_qr_title"), self.show_qr_generator),
+            (t("home.card_pdf_title"), self.show_pdf_scanner),
+            (t("home.card_pdf_merge_title"), self.show_pdf_merger),
+            (t("home.card_cursor_title"), self.show_cursor_skins),
+        )
+        for index, (label, command) in enumerate(quick_buttons):
+            ttk.Button(quick_jump, text=label, style="Secondary.TButton", command=command).grid(
+                row=2 + (index // 3),
+                column=index % 3,
+                sticky="ew",
+                padx=(0, 12) if index % 3 != 2 else 0,
+                pady=(0, 12),
+            )
+
+        cards = ttk.Frame(surface, style="Panel.TFrame", padding=(16, 0, 16, 16))
+        cards.grid(row=2, column=0, sticky="nsew")
         cards.columnconfigure(0, weight=1)
         cards.columnconfigure(1, weight=1)
         cards.rowconfigure(0, weight=1)
         cards.rowconfigure(1, weight=1)
+        cards.rowconfigure(2, weight=1)
 
         renamer_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
         renamer_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=0)
@@ -380,6 +421,20 @@ class ToolboxApp(tk.Tk):
         ttk.Frame(cursor_card, style="Card.TFrame").pack(fill="both", expand=True)
         ttk.Button(cursor_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_cursor_skins).pack(anchor="w")
 
+        pdf_merge_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
+        pdf_merge_card.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=0, pady=(18, 0))
+        ttk.Label(pdf_merge_card, text=t("home.card_pdf_merge_title"), style="CardTitle.TLabel").pack(anchor="w")
+        ttk.Label(
+            pdf_merge_card,
+            text=t("home.card_pdf_merge_text"),
+            style="CardText.TLabel",
+            wraplength=650,
+            justify="left",
+        ).pack(anchor="w", fill="x", pady=(10, 18))
+        ttk.Frame(pdf_merge_card, style="Card.TFrame").pack(fill="both", expand=True)
+        ttk.Button(pdf_merge_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_pdf_merger).pack(anchor="w")
+
+        frame.refresh_scroll_bindings()
         return frame
 
     def _handle_language_change(self, _event: tk.Event) -> None:
@@ -398,6 +453,7 @@ class ToolboxApp(tk.Tk):
         self.renamer_view.grid_forget()
         self.qr_view.grid_forget()
         self.pdf_view.grid_forget()
+        self.pdf_merge_view.grid_forget()
         self.cursor_view.grid_forget()
         view.grid(row=0, column=0, sticky="nsew")
 
@@ -416,6 +472,10 @@ class ToolboxApp(tk.Tk):
     def show_pdf_scanner(self) -> None:
         self.current_view_name = "pdf_scanner"
         self._show_view(self.pdf_view)
+
+    def show_pdf_merger(self) -> None:
+        self.current_view_name = "pdf_merger"
+        self._show_view(self.pdf_merge_view)
 
     def show_cursor_skins(self) -> None:
         self.current_view_name = "cursor_skins"

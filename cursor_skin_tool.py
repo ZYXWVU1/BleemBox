@@ -16,6 +16,7 @@ from cursor_logic import (
     starter_cursor_presets,
 )
 from i18n import t
+from scrollable_panel import ScrollablePanel
 
 
 class CursorSkinToolView(ttk.Frame):
@@ -32,9 +33,6 @@ class CursorSkinToolView(ttk.Frame):
         self.skin_folder_var = tk.StringVar(value=t("cursor.no_skin_folder"))
         self.status_var = tk.StringVar(value=t("cursor.status_initial"))
         self.presets = starter_cursor_presets()
-        self.scroll_canvas: tk.Canvas | None = None
-        self.scroll_content: ttk.Frame | None = None
-        self.scroll_window_id: int | None = None
         self.preset_images: list[ImageTk.PhotoImage] = []
 
         self._build_layout()
@@ -43,29 +41,10 @@ class CursorSkinToolView(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
-        scroll_shell = ttk.Frame(self, style="Panel.TFrame")
-        scroll_shell.grid(row=0, column=0, sticky="nsew")
-        scroll_shell.columnconfigure(0, weight=1)
-        scroll_shell.rowconfigure(0, weight=1)
+        scroll_panel = ScrollablePanel(self, canvas_background="#f7f2eb")
+        scroll_panel.grid(row=0, column=0, sticky="nsew")
 
-        self.scroll_canvas = tk.Canvas(
-            scroll_shell,
-            background="#f7f2eb",
-            borderwidth=0,
-            highlightthickness=0,
-        )
-        self.scroll_canvas.grid(row=0, column=0, sticky="nsew")
-
-        scrollbar = ttk.Scrollbar(scroll_shell, orient="vertical", command=self.scroll_canvas.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        self.scroll_canvas.configure(yscrollcommand=scrollbar.set)
-
-        self.scroll_content = ttk.Frame(self.scroll_canvas, style="Panel.TFrame", padding=0)
-        self.scroll_window_id = self.scroll_canvas.create_window((0, 0), window=self.scroll_content, anchor="nw")
-        self.scroll_content.bind("<Configure>", self._handle_content_configure)
-        self.scroll_canvas.bind("<Configure>", self._handle_canvas_configure)
-
-        surface = self.scroll_content
+        surface = scroll_panel.content
         surface.columnconfigure(0, weight=1)
         surface.rowconfigure(2, weight=1)
 
@@ -217,7 +196,7 @@ class CursorSkinToolView(ttk.Frame):
             anchor="w", fill="x"
         )
 
-        self._install_scroll_bindings(self)
+        scroll_panel.refresh_scroll_bindings()
 
     def _build_preset_preview(self, cursor_path: Path) -> ImageTk.PhotoImage:
         tile_size = 112
@@ -236,33 +215,6 @@ class CursorSkinToolView(ttk.Frame):
         preview = ImageTk.PhotoImage(background)
         self.preset_images.append(preview)
         return preview
-
-    def _handle_content_configure(self, _event: tk.Event) -> None:
-        if self.scroll_canvas is None or self.scroll_content is None:
-            return
-        self.scroll_canvas.configure(scrollregion=self.scroll_canvas.bbox("all"))
-
-    def _handle_canvas_configure(self, event: tk.Event) -> None:
-        if self.scroll_canvas is None or self.scroll_content is None or self.scroll_window_id is None:
-            return
-        self.scroll_canvas.itemconfigure(self.scroll_window_id, width=event.width)
-
-    def _bind_mousewheel(self, _event: tk.Event) -> None:
-        self.bind_all("<MouseWheel>", self._handle_mousewheel)
-
-    def _unbind_mousewheel(self, _event: tk.Event) -> None:
-        self.unbind_all("<MouseWheel>")
-
-    def _install_scroll_bindings(self, widget: tk.Misc) -> None:
-        widget.bind("<Enter>", self._bind_mousewheel, add="+")
-        widget.bind("<Leave>", self._unbind_mousewheel, add="+")
-        for child in widget.winfo_children():
-            self._install_scroll_bindings(child)
-
-    def _handle_mousewheel(self, event: tk.Event) -> None:
-        if self.scroll_canvas is None:
-            return
-        self.scroll_canvas.yview_scroll(int(-event.delta / 120), "units")
 
     def choose_cursor_file(self) -> None:
         cursor_path = filedialog.askopenfilename(
