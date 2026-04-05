@@ -12,6 +12,7 @@ from pdf_text_tool import PDFTextScannerView
 from qr_code_tool import QRCodeGeneratorView
 from scrollable_panel import ScrollablePanel
 from ui_fonts import ui_font, ui_font_family
+from wheel_spinner_tool import WheelSpinnerToolView
 
 
 def enable_windows_dpi_awareness() -> None:
@@ -114,6 +115,18 @@ class ToolboxApp(tk.Tk):
             background="#fffaf4",
             foreground="#667074",
             font=ui_font(10),
+        )
+        style.configure(
+            "MutedField.TLabel",
+            background="#efe5d7",
+            foreground="#30414d",
+            font=ui_font(10, bold=True),
+        )
+        style.configure(
+            "MutedTitle.TLabel",
+            background="#efe5d7",
+            foreground="#1f2a33",
+            font=ui_font(17, bold=True),
         )
         style.configure(
             "CardBadge.TLabel",
@@ -271,6 +284,9 @@ class ToolboxApp(tk.Tk):
         ttk.Button(sidebar, text=t("app.nav_pdf_merge"), style="Nav.TButton", command=self.show_pdf_merger).pack(
             fill="x", pady=(8, 0)
         )
+        ttk.Button(sidebar, text=t("app.nav_wheel"), style="Nav.TButton", command=self.show_wheel_spinner).pack(
+            fill="x", pady=(8, 0)
+        )
         ttk.Button(sidebar, text=t("app.nav_cursor"), style="Nav.TButton", command=self.show_cursor_skins).pack(
             fill="x", pady=(8, 0)
         )
@@ -306,6 +322,7 @@ class ToolboxApp(tk.Tk):
         self.qr_view = QRCodeGeneratorView(self.content, self.show_home)
         self.pdf_view = PDFTextScannerView(self.content, self.show_home)
         self.pdf_merge_view = PDFMergeToolView(self.content, self.show_home)
+        self.wheel_view = WheelSpinnerToolView(self.content, self.show_home)
         self.cursor_view = CursorSkinToolView(self.content, self.show_home)
 
     def _build_home_view(self, parent: ttk.Frame) -> ttk.Frame:
@@ -350,6 +367,7 @@ class ToolboxApp(tk.Tk):
             (t("home.card_qr_title"), self.show_qr_generator),
             (t("home.card_pdf_title"), self.show_pdf_scanner),
             (t("home.card_pdf_merge_title"), self.show_pdf_merger),
+            (t("home.card_wheel_title"), self.show_wheel_spinner),
             (t("home.card_cursor_title"), self.show_cursor_skins),
         )
         for index, (label, command) in enumerate(quick_buttons):
@@ -368,6 +386,7 @@ class ToolboxApp(tk.Tk):
         cards.rowconfigure(0, weight=1)
         cards.rowconfigure(1, weight=1)
         cards.rowconfigure(2, weight=1)
+        cards.rowconfigure(3, weight=1)
 
         renamer_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
         renamer_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=0)
@@ -434,6 +453,19 @@ class ToolboxApp(tk.Tk):
         ttk.Frame(pdf_merge_card, style="Card.TFrame").pack(fill="both", expand=True)
         ttk.Button(pdf_merge_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_pdf_merger).pack(anchor="w")
 
+        wheel_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
+        wheel_card.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=0, pady=(18, 0))
+        ttk.Label(wheel_card, text=t("home.card_wheel_title"), style="CardTitle.TLabel").pack(anchor="w")
+        ttk.Label(
+            wheel_card,
+            text=t("home.card_wheel_text"),
+            style="CardText.TLabel",
+            wraplength=650,
+            justify="left",
+        ).pack(anchor="w", fill="x", pady=(10, 18))
+        ttk.Frame(wheel_card, style="Card.TFrame").pack(fill="both", expand=True)
+        ttk.Button(wheel_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_wheel_spinner).pack(anchor="w")
+
         frame.refresh_scroll_bindings()
         return frame
 
@@ -454,6 +486,7 @@ class ToolboxApp(tk.Tk):
         self.qr_view.grid_forget()
         self.pdf_view.grid_forget()
         self.pdf_merge_view.grid_forget()
+        self.wheel_view.grid_forget()
         self.cursor_view.grid_forget()
         view.grid(row=0, column=0, sticky="nsew")
 
@@ -476,6 +509,10 @@ class ToolboxApp(tk.Tk):
     def show_pdf_merger(self) -> None:
         self.current_view_name = "pdf_merger"
         self._show_view(self.pdf_merge_view)
+
+    def show_wheel_spinner(self) -> None:
+        self.current_view_name = "wheel_spinner"
+        self._show_view(self.wheel_view)
 
     def show_cursor_skins(self) -> None:
         self.current_view_name = "cursor_skins"
