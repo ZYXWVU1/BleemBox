@@ -1,1 +1,1 @@
-Replace this file with a real cursor file named `sizenwse.cur` or `sizenwse.ani`.
+Replace this file with a real cursor file named sizenwse.cur or sizenwse.ani

@@ -1,1 +1,1 @@
-Replace this file with a real cursor file named `arrow.cur` or `arrow.ani`.
+Replace this file with a real cursor file named arrow.cur or arrow.ani

@@ -1,1 +1,1 @@
-Replace this file with a real cursor file named `no.cur` or `no.ani`.
+Replace this file with a real cursor file named no.cur or no.ani

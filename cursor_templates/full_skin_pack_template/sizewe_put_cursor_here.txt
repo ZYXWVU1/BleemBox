@@ -1,1 +1,1 @@
-Replace this file with a real cursor file named `sizewe.cur` or `sizewe.ani`.
+Replace this file with a real cursor file named sizewe.cur or sizewe.ani

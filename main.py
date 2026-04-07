@@ -47,6 +47,9 @@ def _missing_modules() -> list[str]:
 
 def ensure_dependencies() -> None:
     """Install app dependencies before importing the full UI."""
+    if getattr(sys, "frozen", False):
+        return
+
     if not REQUIREMENTS_FILE.exists():
         return
 

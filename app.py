@@ -12,6 +12,7 @@ from pdf_text_tool import PDFTextScannerView
 from qr_code_tool import QRCodeGeneratorView
 from scrollable_panel import ScrollablePanel
 from ui_fonts import ui_font, ui_font_family
+from website_launcher_tool import WebsiteLauncherToolView
 from wheel_spinner_tool import WheelSpinnerToolView
 
 
@@ -287,6 +288,9 @@ class ToolboxApp(tk.Tk):
         ttk.Button(sidebar, text=t("app.nav_wheel"), style="Nav.TButton", command=self.show_wheel_spinner).pack(
             fill="x", pady=(8, 0)
         )
+        ttk.Button(sidebar, text=t("app.nav_web_launcher"), style="Nav.TButton", command=self.show_web_launcher).pack(
+            fill="x", pady=(8, 0)
+        )
         ttk.Button(sidebar, text=t("app.nav_cursor"), style="Nav.TButton", command=self.show_cursor_skins).pack(
             fill="x", pady=(8, 0)
         )
@@ -323,6 +327,7 @@ class ToolboxApp(tk.Tk):
         self.pdf_view = PDFTextScannerView(self.content, self.show_home)
         self.pdf_merge_view = PDFMergeToolView(self.content, self.show_home)
         self.wheel_view = WheelSpinnerToolView(self.content, self.show_home)
+        self.web_launcher_view = WebsiteLauncherToolView(self.content, self.show_home)
         self.cursor_view = CursorSkinToolView(self.content, self.show_home)
 
     def _build_home_view(self, parent: ttk.Frame) -> ttk.Frame:
@@ -368,6 +373,7 @@ class ToolboxApp(tk.Tk):
             (t("home.card_pdf_title"), self.show_pdf_scanner),
             (t("home.card_pdf_merge_title"), self.show_pdf_merger),
             (t("home.card_wheel_title"), self.show_wheel_spinner),
+            (t("home.card_web_launcher_title"), self.show_web_launcher),
             (t("home.card_cursor_title"), self.show_cursor_skins),
         )
         for index, (label, command) in enumerate(quick_buttons):
@@ -383,88 +389,45 @@ class ToolboxApp(tk.Tk):
         cards.grid(row=2, column=0, sticky="nsew")
         cards.columnconfigure(0, weight=1)
         cards.columnconfigure(1, weight=1)
-        cards.rowconfigure(0, weight=1)
-        cards.rowconfigure(1, weight=1)
-        cards.rowconfigure(2, weight=1)
-        cards.rowconfigure(3, weight=1)
+        tool_cards = (
+            (t("home.card_renamer_title"), t("home.card_renamer_text"), self.show_renamer),
+            (t("home.card_qr_title"), t("home.card_qr_text"), self.show_qr_generator),
+            (t("home.card_pdf_title"), t("home.card_pdf_text"), self.show_pdf_scanner),
+            (t("home.card_cursor_title"), t("home.card_cursor_text"), self.show_cursor_skins),
+            (t("home.card_pdf_merge_title"), t("home.card_pdf_merge_text"), self.show_pdf_merger),
+            (t("home.card_wheel_title"), t("home.card_wheel_text"), self.show_wheel_spinner),
+            (t("home.card_web_launcher_title"), t("home.card_web_launcher_text"), self.show_web_launcher),
+        )
 
-        renamer_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
-        renamer_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=0)
-        ttk.Label(renamer_card, text=t("home.card_renamer_title"), style="CardTitle.TLabel").pack(anchor="w")
-        ttk.Label(
-            renamer_card,
-            text=t("home.card_renamer_text"),
-            style="CardText.TLabel",
-            wraplength=250,
-            justify="left",
-        ).pack(anchor="w", fill="x", pady=(10, 18))
-        ttk.Frame(renamer_card, style="Card.TFrame").pack(fill="both", expand=True)
-        ttk.Button(renamer_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_renamer).pack(anchor="w")
+        total_rows = (len(tool_cards) + 1) // 2
+        for row_index in range(total_rows):
+            cards.rowconfigure(row_index, weight=1)
 
-        qr_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
-        qr_card.grid(row=0, column=1, sticky="nsew", padx=(10, 0), pady=0)
-        ttk.Label(qr_card, text=t("home.card_qr_title"), style="CardTitle.TLabel").pack(anchor="w")
-        ttk.Label(
-            qr_card,
-            text=t("home.card_qr_text"),
-            style="CardText.TLabel",
-            wraplength=300,
-            justify="left",
-        ).pack(anchor="w", fill="x", pady=(10, 18))
-        ttk.Frame(qr_card, style="Card.TFrame").pack(fill="both", expand=True)
-        ttk.Button(qr_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_qr_generator).pack(anchor="w")
+        for index, (title, description, command) in enumerate(tool_cards):
+            row_index = index // 2
+            column_index = index % 2
+            card = ttk.Frame(cards, style="Card.TFrame", padding=22)
+            card.grid(
+                row=row_index,
+                column=column_index,
+                sticky="nsew",
+                padx=(0, 10) if column_index == 0 else (10, 0),
+                pady=(0 if row_index == 0 else 18, 0),
+            )
+            ttk.Label(card, text=title, style="CardTitle.TLabel").pack(anchor="w")
+            ttk.Label(
+                card,
+                text=description,
+                style="CardText.TLabel",
+                wraplength=300,
+                justify="left",
+            ).pack(anchor="w", fill="x", pady=(10, 18))
+            ttk.Frame(card, style="Card.TFrame").pack(fill="both", expand=True)
+            ttk.Button(card, text=t("home.open_tool"), style="Primary.TButton", command=command).pack(anchor="w")
 
-        pdf_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
-        pdf_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10), pady=(18, 0))
-        ttk.Label(pdf_card, text=t("home.card_pdf_title"), style="CardTitle.TLabel").pack(anchor="w")
-        ttk.Label(
-            pdf_card,
-            text=t("home.card_pdf_text"),
-            style="CardText.TLabel",
-            wraplength=300,
-            justify="left",
-        ).pack(anchor="w", fill="x", pady=(10, 18))
-        ttk.Frame(pdf_card, style="Card.TFrame").pack(fill="both", expand=True)
-        ttk.Button(pdf_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_pdf_scanner).pack(anchor="w")
-
-        cursor_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
-        cursor_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0), pady=(18, 0))
-        ttk.Label(cursor_card, text=t("home.card_cursor_title"), style="CardTitle.TLabel").pack(anchor="w")
-        ttk.Label(
-            cursor_card,
-            text=t("home.card_cursor_text"),
-            style="CardText.TLabel",
-            wraplength=300,
-            justify="left",
-        ).pack(anchor="w", fill="x", pady=(10, 18))
-        ttk.Frame(cursor_card, style="Card.TFrame").pack(fill="both", expand=True)
-        ttk.Button(cursor_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_cursor_skins).pack(anchor="w")
-
-        pdf_merge_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
-        pdf_merge_card.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=0, pady=(18, 0))
-        ttk.Label(pdf_merge_card, text=t("home.card_pdf_merge_title"), style="CardTitle.TLabel").pack(anchor="w")
-        ttk.Label(
-            pdf_merge_card,
-            text=t("home.card_pdf_merge_text"),
-            style="CardText.TLabel",
-            wraplength=650,
-            justify="left",
-        ).pack(anchor="w", fill="x", pady=(10, 18))
-        ttk.Frame(pdf_merge_card, style="Card.TFrame").pack(fill="both", expand=True)
-        ttk.Button(pdf_merge_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_pdf_merger).pack(anchor="w")
-
-        wheel_card = ttk.Frame(cards, style="Card.TFrame", padding=22)
-        wheel_card.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=0, pady=(18, 0))
-        ttk.Label(wheel_card, text=t("home.card_wheel_title"), style="CardTitle.TLabel").pack(anchor="w")
-        ttk.Label(
-            wheel_card,
-            text=t("home.card_wheel_text"),
-            style="CardText.TLabel",
-            wraplength=650,
-            justify="left",
-        ).pack(anchor="w", fill="x", pady=(10, 18))
-        ttk.Frame(wheel_card, style="Card.TFrame").pack(fill="both", expand=True)
-        ttk.Button(wheel_card, text=t("home.open_tool"), style="Primary.TButton", command=self.show_wheel_spinner).pack(anchor="w")
+        if len(tool_cards) % 2 == 1:
+            spacer = ttk.Frame(cards, style="Panel.TFrame")
+            spacer.grid(row=total_rows - 1, column=1, sticky="nsew", padx=(10, 0), pady=(18 if total_rows > 1 else 0, 0))
 
         frame.refresh_scroll_bindings()
         return frame
@@ -487,6 +450,7 @@ class ToolboxApp(tk.Tk):
         self.pdf_view.grid_forget()
         self.pdf_merge_view.grid_forget()
         self.wheel_view.grid_forget()
+        self.web_launcher_view.grid_forget()
         self.cursor_view.grid_forget()
         view.grid(row=0, column=0, sticky="nsew")
 
@@ -513,6 +477,10 @@ class ToolboxApp(tk.Tk):
     def show_wheel_spinner(self) -> None:
         self.current_view_name = "wheel_spinner"
         self._show_view(self.wheel_view)
+
+    def show_web_launcher(self) -> None:
+        self.current_view_name = "web_launcher"
+        self._show_view(self.web_launcher_view)
 
     def show_cursor_skins(self) -> None:
         self.current_view_name = "cursor_skins"

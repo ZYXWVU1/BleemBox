@@ -1,1 +1,1 @@
-Replace this file with a real cursor file named `appstarting.cur` or `appstarting.ani`.
+Replace this file with a real cursor file named appstarting.cur or appstarting.ani
