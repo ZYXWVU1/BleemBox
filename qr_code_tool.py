@@ -7,6 +7,8 @@ from tkinter import filedialog, messagebox, ttk
 from PIL import ImageTk
 
 from i18n import t
+from ui_theme import responsive_columns
+from scrollable_panel import ScrollablePanel
 from qr_logic import build_qr_image
 
 
@@ -28,9 +30,13 @@ class QRCodeGeneratorView(ttk.Frame):
     def _build_layout(self) -> None:
         # This frame contains the QR form on the left and the image preview on the right.
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
+        self.rowconfigure(0, weight=1)
+        scroll_panel = ScrollablePanel(self, canvas_background="#f6f6f7")
+        scroll_panel.grid(row=0, column=0, sticky="nsew")
+        surface = scroll_panel.content
+        surface.columnconfigure(0, weight=1)
 
-        header = ttk.Frame(self, style="Panel.TFrame", padding=(6, 0, 6, 18))
+        header = ttk.Frame(surface, style="Panel.TFrame", padding=(6, 0, 6, 18))
         header.grid(row=0, column=0, sticky="ew")
         header.columnconfigure(0, weight=1)
 
@@ -40,17 +46,14 @@ class QRCodeGeneratorView(ttk.Frame):
             text=t("qr.subtitle"),
             style="SectionText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(8, 0))
-        ttk.Button(header, text=t("common.back_home"), style="Secondary.TButton", command=self.on_back_home).grid(
-            row=0, column=1, rowspan=2, sticky="e"
-        )
 
-        content = ttk.Frame(self, style="Panel.TFrame", padding=6)
+        content = ttk.Frame(surface, style="Panel.TFrame", padding=6)
         content.grid(row=1, column=0, sticky="nsew")
         content.columnconfigure(0, weight=1)
         content.columnconfigure(1, weight=1)
         content.rowconfigure(0, weight=1)
 
-        controls_card = ttk.Frame(content, style="Card.TFrame", padding=22)
+        controls_card = ttk.Frame(content, style="Card.TFrame", padding=24)
         controls_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
         controls_card.columnconfigure(0, weight=1)
 
@@ -79,7 +82,9 @@ class QRCodeGeneratorView(ttk.Frame):
         ttk.Button(action_row, text=t("qr.generate"), style="Primary.TButton", command=self.generate_qr_code).pack(
             side="left", padx=(0, 10)
         )
-        ttk.Button(action_row, text=t("qr.save_png"), style="Secondary.TButton", command=self.save_qr_code).pack(side="left")
+        self.save_button = ttk.Button(action_row, text=t("qr.save_png"), style="Secondary.TButton",
+                                      command=self.save_qr_code, state="disabled")
+        self.save_button.pack(side="left")
 
         status_box = ttk.Frame(controls_card, style="Card.TFrame", padding=0)
         status_box.grid(row=5, column=0, sticky="ew", pady=(18, 0))
@@ -87,7 +92,7 @@ class QRCodeGeneratorView(ttk.Frame):
             anchor="w", fill="x"
         )
 
-        preview_card = ttk.Frame(content, style="Card.TFrame", padding=22)
+        preview_card = ttk.Frame(content, style="Card.TFrame", padding=24)
         preview_card.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
         preview_card.columnconfigure(0, weight=1)
         preview_card.rowconfigure(1, weight=1)
@@ -102,6 +107,9 @@ class QRCodeGeneratorView(ttk.Frame):
         )
         self.qr_preview_label.grid(row=1, column=0, sticky="nsew", pady=(18, 0))
 
+        responsive_columns(content, controls_card, preview_card, threshold=820)
+        scroll_panel.refresh_scroll_bindings()
+
     def _set_qr_link(self, link: str) -> None:
         # This helper fills the entry box with a sample link.
         self.qr_input_var.set(link)
@@ -115,8 +123,9 @@ class QRCodeGeneratorView(ttk.Frame):
             return
 
         preview_image = qr_image.copy()
-        preview_image.thumbnail((360, 360))
+        preview_image.thumbnail((280, 280))
 
+        self.save_button.state(["!disabled"])
         self.qr_image = qr_image
         self.qr_photo = ImageTk.PhotoImage(preview_image)
         self.qr_preview_label.configure(image=self.qr_photo, text="")

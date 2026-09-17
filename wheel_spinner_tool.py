@@ -7,6 +7,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from i18n import t
+from ui_theme import responsive_columns
 from scrollable_panel import ScrollablePanel
 from ui_fonts import ui_font
 from wheel_logic import choose_winner_index, parse_wheel_items
@@ -18,14 +19,14 @@ class WheelSpinnerToolView(ttk.Frame):
     WHEEL_SIZE = 300
     POINTER_ANGLE = 90.0
     COLOR_PALETTE = (
-        "#d97757",
-        "#eab676",
-        "#8eb486",
-        "#78a6a8",
-        "#7e95d1",
-        "#b784c4",
-        "#c98c8c",
-        "#d6c17d",
+        "#c5c8ce",
+        "#e3e4e8",
+        "#b5bac2",
+        "#d6d8de",
+        "#cbd0d6",
+        "#eaebee",
+        "#bdc2ca",
+        "#dce0e5",
     )
 
     def __init__(self, parent: ttk.Frame, on_back_home) -> None:
@@ -47,7 +48,7 @@ class WheelSpinnerToolView(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
-        scroll_panel = ScrollablePanel(self, canvas_background="#f7f2eb")
+        scroll_panel = ScrollablePanel(self, canvas_background="#f6f6f7")
         scroll_panel.grid(row=0, column=0, sticky="nsew")
 
         surface = scroll_panel.content
@@ -66,9 +67,6 @@ class WheelSpinnerToolView(ttk.Frame):
             wraplength=760,
             justify="left",
         ).grid(row=1, column=0, sticky="w", pady=(8, 0))
-        ttk.Button(header, text=t("common.back_home"), style="Secondary.TButton", command=self.on_back_home).grid(
-            row=0, column=1, rowspan=2, sticky="e"
-        )
 
         content = ttk.Frame(surface, style="Panel.TFrame", padding=6)
         content.grid(row=1, column=0, sticky="nsew")
@@ -76,10 +74,10 @@ class WheelSpinnerToolView(ttk.Frame):
         content.rowconfigure(0, weight=1)
         content.rowconfigure(1, weight=1)
 
-        control_card = ttk.Frame(content, style="Card.TFrame", padding=22)
+        control_card = ttk.Frame(content, style="Card.TFrame", padding=24)
         control_card.grid(row=0, column=0, sticky="nsew", pady=(0, 12))
         control_card.columnconfigure(0, weight=1)
-        control_card.rowconfigure(3, weight=1)
+        control_card.rowconfigure(2, weight=1)
 
         ttk.Label(control_card, text=t("wheel.entries_title"), style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Label(
@@ -96,14 +94,19 @@ class WheelSpinnerToolView(ttk.Frame):
             font=ui_font(10),
             relief="flat",
             borderwidth=0,
-            background="#fffdf9",
-            foreground="#21303a",
-            insertbackground="#21303a",
-            selectbackground="#f1d7c2",
+            background="#fafafb",
+            foreground="#242629",
+            insertbackground="#242629",
+            selectbackground="#dedfe3",
+            selectforeground="#242629",
+            width=1,
+            highlightthickness=1,
+            highlightbackground="#dcdde0",
+            highlightcolor="#62666d",
             padx=12,
             pady=12,
             undo=False,
-            height=14,
+            height=10,
         )
         self.items_text.grid(row=2, column=0, sticky="nsew")
         self.items_text.bind("<KeyRelease>", self._handle_items_changed)
@@ -116,7 +119,7 @@ class WheelSpinnerToolView(ttk.Frame):
         action_row.grid(row=3, column=0, sticky="w", pady=(18, 0))
         ttk.Button(action_row, text=t("wheel.spin_button"), style="Primary.TButton", command=self.spin_wheel).pack(side="left")
 
-        result_card = ttk.Frame(content, style="Card.TFrame", padding=22)
+        result_card = ttk.Frame(content, style="Card.TFrame", padding=24)
         result_card.grid(row=1, column=0, sticky="nsew")
         result_card.columnconfigure(0, weight=1)
         result_card.rowconfigure(1, weight=1)
@@ -134,7 +137,7 @@ class WheelSpinnerToolView(ttk.Frame):
             wheel_frame,
             width=self.WHEEL_SIZE,
             height=self.WHEEL_SIZE + 32,
-            background="#fffaf4",
+            background="#ffffff",
             highlightthickness=0,
             borderwidth=0,
         )
@@ -155,6 +158,7 @@ class WheelSpinnerToolView(ttk.Frame):
             justify="left",
         ).pack(anchor="w", pady=(8, 0))
 
+        responsive_columns(content, control_card, result_card, threshold=820)
         scroll_panel.refresh_scroll_bindings()
 
     def _set_default_items(self) -> None:
@@ -202,15 +206,15 @@ class WheelSpinnerToolView(ttk.Frame):
                 center_y - radius,
                 center_x + radius,
                 center_y + radius,
-                outline="#d7c7b8",
+                outline="#dcdde0",
                 width=2,
-                fill="#f7f2eb",
+                fill="#f6f6f7",
             )
             self.wheel_canvas.create_text(
                 center_x,
                 center_y,
                 text=t("wheel.canvas_placeholder"),
-                fill="#8a8179",
+                fill="#62666d",
                 font=ui_font(12, bold=True),
                 width=220,
                 justify="center",
@@ -230,7 +234,7 @@ class WheelSpinnerToolView(ttk.Frame):
                 start=start_angle,
                 extent=slice_angle,
                 fill=fill_color,
-                outline="#fffaf4",
+                outline="#ffffff",
                 width=2,
             )
 
@@ -242,7 +246,7 @@ class WheelSpinnerToolView(ttk.Frame):
                 label_x,
                 label_y,
                 text=self._shorten_label(item),
-                fill="#1f2a33",
+                fill="#242629",
                 font=ui_font(10, bold=True),
                 width=max(60, int(radius * 0.45)),
                 justify="center",
@@ -253,8 +257,8 @@ class WheelSpinnerToolView(ttk.Frame):
             center_y - 30,
             center_x + 30,
             center_y + 30,
-            fill="#fffaf4",
-            outline="#d7c7b8",
+            fill="#ffffff",
+            outline="#dcdde0",
             width=2,
         )
         self._draw_pointer(center_x, center_y, radius)
@@ -268,7 +272,7 @@ class WheelSpinnerToolView(ttk.Frame):
             tip_y - 26,
             center_x + 16,
             tip_y - 26,
-            fill="#c76838",
+            fill="#404349",
             outline="",
         )
 

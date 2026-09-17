@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 from i18n import t
+from scrollable_panel import ScrollablePanel
 from pdf_logic import extract_pdf_text
 from ui_fonts import ui_font
 
@@ -25,9 +26,13 @@ class PDFTextScannerView(ttk.Frame):
 
     def _build_layout(self) -> None:
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(2, weight=1)
+        self.rowconfigure(0, weight=1)
+        scroll_panel = ScrollablePanel(self, canvas_background="#f6f6f7")
+        scroll_panel.grid(row=0, column=0, sticky="nsew")
+        surface = scroll_panel.content
+        surface.columnconfigure(0, weight=1)
 
-        header = ttk.Frame(self, style="Panel.TFrame", padding=(6, 0, 6, 18))
+        header = ttk.Frame(surface, style="Panel.TFrame", padding=(6, 0, 6, 18))
         header.grid(row=0, column=0, sticky="ew")
         header.columnconfigure(0, weight=1)
 
@@ -37,11 +42,8 @@ class PDFTextScannerView(ttk.Frame):
             text=t("pdf.subtitle"),
             style="SectionText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(8, 0))
-        ttk.Button(header, text=t("common.back_home"), style="Secondary.TButton", command=self.on_back_home).grid(
-            row=0, column=1, rowspan=2, sticky="e"
-        )
 
-        controls_card = ttk.Frame(self, style="Card.TFrame", padding=22)
+        controls_card = ttk.Frame(surface, style="Card.TFrame", padding=24)
         controls_card.grid(row=1, column=0, sticky="ew", padx=6, pady=(0, 14))
         controls_card.columnconfigure(0, weight=1)
 
@@ -70,7 +72,7 @@ class PDFTextScannerView(ttk.Frame):
             anchor="w", fill="x"
         )
 
-        preview_card = ttk.Frame(self, style="Card.TFrame", padding=22)
+        preview_card = ttk.Frame(surface, style="Card.TFrame", padding=24)
         preview_card.grid(row=2, column=0, sticky="nsew", padx=6, pady=(0, 6))
         preview_card.columnconfigure(0, weight=1)
         preview_card.rowconfigure(1, weight=1)
@@ -88,19 +90,27 @@ class PDFTextScannerView(ttk.Frame):
             font=ui_font(10),
             relief="flat",
             borderwidth=0,
-            background="#fffdf9",
-            foreground="#21303a",
-            insertbackground="#21303a",
-            selectbackground="#f1d7c2",
+            background="#fafafb",
+            foreground="#242629",
+            insertbackground="#242629",
+            selectbackground="#dedfe3",
+            selectforeground="#242629",
+            width=1,
+            highlightthickness=1,
+            highlightbackground="#dcdde0",
+            highlightcolor="#62666d",
             padx=12,
             pady=12,
             undo=False,
+            height=14,
         )
         self.output_text.grid(row=0, column=0, sticky="nsew")
 
         scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=self.output_text.yview)
         scrollbar.grid(row=0, column=1, sticky="ns")
         self.output_text.configure(yscrollcommand=scrollbar.set)
+
+        scroll_panel.refresh_scroll_bindings()
 
     def choose_pdf(self) -> None:
         pdf_path = filedialog.askopenfilename(

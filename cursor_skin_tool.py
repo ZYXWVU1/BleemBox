@@ -16,6 +16,7 @@ from cursor_logic import (
     starter_cursor_presets,
 )
 from i18n import t
+from ui_theme import responsive_columns
 from scrollable_panel import ScrollablePanel
 
 
@@ -41,7 +42,7 @@ class CursorSkinToolView(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
-        scroll_panel = ScrollablePanel(self, canvas_background="#f7f2eb")
+        scroll_panel = ScrollablePanel(self, canvas_background="#f6f6f7")
         scroll_panel.grid(row=0, column=0, sticky="nsew")
 
         surface = scroll_panel.content
@@ -58,9 +59,6 @@ class CursorSkinToolView(ttk.Frame):
             text=t("cursor.subtitle"),
             style="SectionText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(8, 0))
-        ttk.Button(header, text=t("common.back_home"), style="Secondary.TButton", command=self.on_back_home).grid(
-            row=0, column=1, rowspan=2, sticky="e"
-        )
 
         if not is_windows_supported():
             ttk.Label(
@@ -77,7 +75,7 @@ class CursorSkinToolView(ttk.Frame):
         content.columnconfigure(1, weight=1)
         content.rowconfigure(0, weight=1)
 
-        custom_card = ttk.Frame(content, style="Card.TFrame", padding=22)
+        custom_card = ttk.Frame(content, style="Card.TFrame", padding=24)
         custom_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
         custom_card.columnconfigure(0, weight=1)
 
@@ -140,7 +138,7 @@ class CursorSkinToolView(ttk.Frame):
             command=self.reset_to_default_skin,
         ).pack(side="left")
 
-        starter_card = ttk.Frame(content, style="Card.TFrame", padding=22)
+        starter_card = ttk.Frame(content, style="Card.TFrame", padding=24)
         starter_card.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
         starter_card.columnconfigure(0, weight=1)
 
@@ -170,8 +168,8 @@ class CursorSkinToolView(ttk.Frame):
                     command=lambda item=preset: self.apply_preset(item),
                     relief="flat",
                     borderwidth=0,
-                    background="#efe5d7",
-                    activebackground="#e7dac9",
+                    background="#f0f0f2",
+                    activebackground="#e0e1e5",
                     cursor="hand2",
                 )
                 image_button.grid(row=0, column=0, sticky="w")
@@ -196,11 +194,12 @@ class CursorSkinToolView(ttk.Frame):
             anchor="w", fill="x"
         )
 
+        responsive_columns(content, custom_card, starter_card, threshold=1000)
         scroll_panel.refresh_scroll_bindings()
 
     def _build_preset_preview(self, cursor_path: Path) -> ImageTk.PhotoImage:
         tile_size = 112
-        background = Image.new("RGBA", (tile_size, tile_size), "#efe5d7")
+        background = Image.new("RGBA", (tile_size, tile_size), "#f0f0f2")
 
         try:
             cursor_image = Image.open(cursor_path).convert("RGBA")

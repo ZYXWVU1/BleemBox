@@ -11,7 +11,7 @@ from pdf_merge_tool import PDFMergeToolView
 from pdf_text_tool import PDFTextScannerView
 from qr_code_tool import QRCodeGeneratorView
 from scrollable_panel import ScrollablePanel
-from ui_fonts import ui_font, ui_font_family
+from ui_theme import PAGE, apply_theme, fit_text
 from website_launcher_tool import WebsiteLauncherToolView
 from wheel_spinner_tool import WheelSpinnerToolView
 
@@ -28,299 +28,71 @@ def enable_windows_dpi_awareness() -> None:
 
 
 class ToolboxApp(tk.Tk):
-    """Main window that hosts the toolbox home screen and each tool view."""
+    """A quiet desktop workspace with persistent tool navigation."""
 
     def __init__(self) -> None:
         super().__init__()
         self.title(t("app.window_title"))
-        self.geometry("1260x840")
-        self.minsize(1080, 760)
-        self.configure(bg="#f4efe7")
-        self.main_shell: ttk.Frame | None = None
+        self.geometry("1280x860")
+        self.minsize(1000, 700)
+        self.configure(bg=PAGE)
+        self.main_shell = None
         self.language_var = tk.StringVar(value=LANGUAGE_LABELS[get_language()])
         self.current_view_name = "home"
-
         try:
             self.tk.call("tk", "scaling", self.winfo_fpixels("1i") / 72.0)
         except tk.TclError:
             pass
-
-        # The app shell owns the styles, sidebar, and navigation between tool screens.
         self._build_styles()
         self._build_layout()
         self.show_home()
 
-    def _build_styles(self) -> None:
-        style = ttk.Style(self)
-        style.theme_use("clam")
+    def _build_styles(self):
+        apply_theme(self)
 
-        self.option_add("*Font", f"{{{ui_font_family()}}} 10")
-
-        style.configure("Shell.TFrame", background="#f4efe7")
-        style.configure("Sidebar.TFrame", background="#1d2a36")
-        style.configure("Panel.TFrame", background="#f7f2eb")
-        style.configure("Card.TFrame", background="#fffaf4", relief="flat")
-        style.configure("Muted.TFrame", background="#efe5d7")
-
-        style.configure(
-            "AppTitle.TLabel",
-            background="#1d2a36",
-            foreground="#fffaf4",
-            font=ui_font(22, bold=True),
-        )
-        style.configure(
-            "SidebarText.TLabel",
-            background="#1d2a36",
-            foreground="#cfd7df",
-            font=ui_font(10),
-        )
-        style.configure(
-            "SidebarBadge.TLabel",
-            background="#304657",
-            foreground="#f8d9b8",
-            font=ui_font(9, bold=True),
-            padding=(10, 4),
-        )
-        style.configure(
-            "ToolbarLabel.TLabel",
-            background="#f7f2eb",
-            foreground="#5e666d",
-            font=ui_font(10, bold=True),
-        )
-        style.configure(
-            "Eyebrow.TLabel",
-            background="#f7f2eb",
-            foreground="#b45b30",
-            font=ui_font(9, bold=True),
-        )
-        style.configure(
-            "SectionTitle.TLabel",
-            background="#f7f2eb",
-            foreground="#1f2a33",
-            font=ui_font(28, bold=True),
-        )
-        style.configure(
-            "SectionText.TLabel",
-            background="#f7f2eb",
-            foreground="#6b756d",
-            font=ui_font(11),
-        )
-        style.configure(
-            "CardTitle.TLabel",
-            background="#fffaf4",
-            foreground="#1f2a33",
-            font=ui_font(17, bold=True),
-        )
-        style.configure(
-            "CardText.TLabel",
-            background="#fffaf4",
-            foreground="#667074",
-            font=ui_font(10),
-        )
-        style.configure(
-            "MutedField.TLabel",
-            background="#efe5d7",
-            foreground="#30414d",
-            font=ui_font(10, bold=True),
-        )
-        style.configure(
-            "MutedTitle.TLabel",
-            background="#efe5d7",
-            foreground="#1f2a33",
-            font=ui_font(17, bold=True),
-        )
-        style.configure(
-            "CardBadge.TLabel",
-            background="#fffaf4",
-            foreground="#c06836",
-            font=ui_font(9, bold=True),
-        )
-        style.configure(
-            "FieldLabel.TLabel",
-            background="#fffaf4",
-            foreground="#30414d",
-            font=ui_font(10, bold=True),
-        )
-        style.configure(
-            "Status.TLabel",
-            background="#f4e2d3",
-            foreground="#8b4b25",
-            font=ui_font(10),
-        )
-        style.configure(
-            "PreviewText.TLabel",
-            background="#fffaf4",
-            foreground="#7a847b",
-            font=ui_font(10),
-        )
-
-        style.configure(
-            "Nav.TButton",
-            background="#1d2a36",
-            foreground="#f4efe7",
-            borderwidth=0,
-            focuscolor="#1d2a36",
-            anchor="w",
-            padding=(16, 12),
-            font=ui_font(10, bold=True),
-        )
-        style.map(
-            "Nav.TButton",
-            background=[("active", "#304657"), ("pressed", "#304657")],
-            foreground=[("active", "#fffaf4")],
-        )
-
-        style.configure(
-            "Primary.TButton",
-            background="#c76838",
-            foreground="#fffaf4",
-            borderwidth=0,
-            focuscolor="#c76838",
-            padding=(18, 11),
-            font=ui_font(10, bold=True),
-        )
-        style.map(
-            "Primary.TButton",
-            background=[("active", "#d67745"), ("pressed", "#b55a2e")],
-            foreground=[("active", "#fffaf4")],
-        )
-
-        style.configure(
-            "Secondary.TButton",
-            background="#ece1d3",
-            foreground="#24313b",
-            borderwidth=0,
-            focuscolor="#ece1d3",
-            padding=(16, 11),
-            font=ui_font(10, bold=True),
-        )
-        style.map(
-            "Secondary.TButton",
-            background=[("active", "#e5d6c4"), ("pressed", "#dbcab6")],
-        )
-
-        style.configure(
-            "Modern.TEntry",
-            fieldbackground="#fffdf9",
-            foreground="#1f2a33",
-            bordercolor="#dbcab6",
-            lightcolor="#dbcab6",
-            darkcolor="#dbcab6",
-            relief="flat",
-            padding=(10, 8),
-        )
-        style.map(
-            "Modern.TEntry",
-            bordercolor=[("focus", "#c76838")],
-            lightcolor=[("focus", "#c76838")],
-            darkcolor=[("focus", "#c76838")],
-        )
-
-        style.configure(
-            "Modern.TCheckbutton",
-            background="#fffaf4",
-            foreground="#30414d",
-            font=ui_font(10),
-        )
-        style.map(
-            "Modern.TCheckbutton",
-            background=[("active", "#fffaf4")],
-            foreground=[("active", "#30414d")],
-        )
-
-        style.configure(
-            "Clean.Treeview",
-            background="#fffdf9",
-            fieldbackground="#fffdf9",
-            foreground="#22303a",
-            borderwidth=0,
-            rowheight=36,
-            font=ui_font(10),
-        )
-        style.configure(
-            "Clean.Treeview.Heading",
-            background="#efe4d7",
-            foreground="#24313b",
-            borderwidth=0,
-            font=ui_font(10, bold=True),
-        )
-        style.map(
-            "Clean.Treeview",
-            background=[("selected", "#f1d7c2")],
-            foreground=[("selected", "#24313b")],
-        )
-
-    def _build_layout(self) -> None:
-        # The layout is a sidebar on the left and a content area on the right.
+    def _build_layout(self):
         if self.main_shell is not None:
             self.main_shell.destroy()
-
         self.title(t("app.window_title"))
-        self.main_shell = ttk.Frame(self, style="Shell.TFrame", padding=18)
+        self.main_shell = ttk.Frame(self, style="Shell.TFrame")
         self.main_shell.pack(fill="both", expand=True)
         self.main_shell.columnconfigure(1, weight=1)
         self.main_shell.rowconfigure(0, weight=1)
 
-        sidebar = ttk.Frame(self.main_shell, style="Sidebar.TFrame", padding=22)
-        sidebar.grid(row=0, column=0, sticky="ns", padx=(0, 18))
-
-        ttk.Label(sidebar, text=t("app.sidebar_badge"), style="SidebarBadge.TLabel").pack(anchor="w")
-        ttk.Label(sidebar, text=t("app.window_title"), style="AppTitle.TLabel").pack(anchor="w")
-        ttk.Label(
-            sidebar,
-            text=t("app.sidebar_subtitle"),
-            style="SidebarText.TLabel",
-            justify="left",
-            wraplength=190,
-        ).pack(anchor="w", pady=(10, 24))
-
-        ttk.Button(sidebar, text=t("app.nav_home"), style="Nav.TButton", command=self.show_home).pack(fill="x", pady=(0, 8))
-        ttk.Button(sidebar, text=t("app.nav_renamer"), style="Nav.TButton", command=self.show_renamer).pack(fill="x")
-        ttk.Button(sidebar, text=t("app.nav_qr"), style="Nav.TButton", command=self.show_qr_generator).pack(
-            fill="x", pady=(8, 0)
+        sidebar = ttk.Frame(self.main_shell, style="Sidebar.TFrame", padding=(16, 28, 16, 20))
+        sidebar.grid(row=0, column=0, sticky="ns")
+        ttk.Label(sidebar, text="Bleem Box", style="AppTitle.TLabel").pack(anchor="w", padx=12)
+        ttk.Label(sidebar, text=t("app.workspace"), style="SidebarText.TLabel").pack(
+            anchor="w", padx=12, pady=(6, 28))
+        self.nav_buttons = {}
+        nav = (
+            ("home", "app.nav_home", self.show_home),
+            ("renamer", "app.nav_renamer", self.show_renamer),
+            ("qr_generator", "app.nav_qr", self.show_qr_generator),
+            ("pdf_scanner", "app.nav_pdf", self.show_pdf_scanner),
+            ("pdf_merger", "app.nav_pdf_merge", self.show_pdf_merger),
+            ("wheel_spinner", "app.nav_wheel", self.show_wheel_spinner),
+            ("web_launcher", "app.nav_web_launcher", self.show_web_launcher),
+            ("cursor_skins", "app.nav_cursor", self.show_cursor_skins),
         )
-        ttk.Button(sidebar, text=t("app.nav_pdf"), style="Nav.TButton", command=self.show_pdf_scanner).pack(
-            fill="x", pady=(8, 0)
-        )
-        ttk.Button(sidebar, text=t("app.nav_pdf_merge"), style="Nav.TButton", command=self.show_pdf_merger).pack(
-            fill="x", pady=(8, 0)
-        )
-        ttk.Button(sidebar, text=t("app.nav_wheel"), style="Nav.TButton", command=self.show_wheel_spinner).pack(
-            fill="x", pady=(8, 0)
-        )
-        ttk.Button(sidebar, text=t("app.nav_web_launcher"), style="Nav.TButton", command=self.show_web_launcher).pack(
-            fill="x", pady=(8, 0)
-        )
-        ttk.Button(sidebar, text=t("app.nav_cursor"), style="Nav.TButton", command=self.show_cursor_skins).pack(
-            fill="x", pady=(8, 0)
-        )
-
-        content_shell = ttk.Frame(self.main_shell, style="Panel.TFrame", padding=0)
-        content_shell.grid(row=0, column=1, sticky="nsew")
-        content_shell.columnconfigure(0, weight=1)
-        content_shell.rowconfigure(1, weight=1)
-
-        toolbar = ttk.Frame(content_shell, style="Panel.TFrame", padding=(10, 4, 10, 10))
-        toolbar.grid(row=0, column=0, sticky="ew")
-        toolbar.columnconfigure(0, weight=1)
-
-        ttk.Label(toolbar, text=t("app.language"), style="ToolbarLabel.TLabel").grid(row=0, column=1, sticky="e", padx=(0, 8))
-        language_switch = ttk.Combobox(
-            toolbar,
-            state="readonly",
-            width=10,
-            values=[LANGUAGE_LABELS["zh"], LANGUAGE_LABELS["en"]],
-            textvariable=self.language_var,
-        )
-        language_switch.grid(row=0, column=2, sticky="e")
+        for name, key, command in nav:
+            if name == "renamer":
+                ttk.Separator(sidebar).pack(fill="x", padx=12, pady=16)
+            button = ttk.Button(sidebar, text=t(key), style="Nav.TButton", command=command, width=21)
+            button.pack(fill="x", pady=3)
+            self.nav_buttons[name] = button
+        footer = ttk.Frame(sidebar, style="Sidebar.TFrame")
+        footer.pack(side="bottom", fill="x", padx=8)
+        ttk.Label(footer, text=t("app.language"), style="SidebarText.TLabel").pack(anchor="w", pady=(0, 8))
+        language_switch = ttk.Combobox(footer, state="readonly", width=16,
+            values=[LANGUAGE_LABELS["zh"], LANGUAGE_LABELS["en"]], textvariable=self.language_var)
+        language_switch.pack(fill="x")
         language_switch.bind("<<ComboboxSelected>>", self._handle_language_change)
 
-        self.content = ttk.Frame(content_shell, style="Panel.TFrame", padding=0)
-        self.content.grid(row=1, column=0, sticky="nsew")
+        self.content = ttk.Frame(self.main_shell, style="Panel.TFrame", padding=(24, 28, 20, 20))
+        self.content.grid(row=0, column=1, sticky="nsew")
         self.content.columnconfigure(0, weight=1)
         self.content.rowconfigure(0, weight=1)
-
-        # Each tool is its own frame class now, which keeps this file focused on navigation.
         self.home_view = self._build_home_view(self.content)
         self.renamer_view = BatchRenamerView(self.content, self.show_home)
         self.qr_view = QRCodeGeneratorView(self.content, self.show_home)
@@ -329,106 +101,62 @@ class ToolboxApp(tk.Tk):
         self.wheel_view = WheelSpinnerToolView(self.content, self.show_home)
         self.web_launcher_view = WebsiteLauncherToolView(self.content, self.show_home)
         self.cursor_view = CursorSkinToolView(self.content, self.show_home)
+        for view in (self.renamer_view, self.qr_view, self.pdf_view, self.pdf_merge_view,
+                     self.wheel_view, self.web_launcher_view, self.cursor_view):
+            fit_text(view)
 
-    def _build_home_view(self, parent: ttk.Frame) -> ttk.Frame:
-        # The home screen acts like a launcher for all tools in the toolbox.
-        frame = ScrollablePanel(parent, canvas_background="#f7f2eb")
+    def _build_home_view(self, parent):
+        frame = ScrollablePanel(parent, canvas_background=PAGE)
         surface = frame.content
         surface.columnconfigure(0, weight=1)
-        surface.rowconfigure(2, weight=1)
-
-        intro = ttk.Frame(surface, style="Panel.TFrame", padding=(16, 10, 16, 20))
+        intro = ttk.Frame(surface, style="Panel.TFrame", padding=(4, 0, 4, 24))
         intro.grid(row=0, column=0, sticky="ew")
-        intro.columnconfigure(0, weight=1)
-
-        ttk.Label(intro, text=t("home.title"), style="SectionTitle.TLabel").grid(
-            row=0, column=0, sticky="w", pady=(4, 0)
+        ttk.Label(intro, text=t("home.title"), style="SectionTitle.TLabel").pack(anchor="w")
+        ttk.Label(intro, text=t("home.subtitle"), style="SectionText.TLabel").pack(anchor="w", pady=(8, 0))
+        cards = ttk.Frame(surface, style="Panel.TFrame")
+        cards.grid(row=1, column=0, sticky="ew")
+        tools = (
+            ("renamer", "01", self.show_renamer),
+            ("qr", "02", self.show_qr_generator),
+            ("pdf", "03", self.show_pdf_scanner),
+            ("pdf_merge", "04", self.show_pdf_merger),
+            ("wheel", "05", self.show_wheel_spinner),
+            ("web_launcher", "06", self.show_web_launcher),
+            ("cursor", "07", self.show_cursor_skins),
         )
-        ttk.Label(
-            intro,
-            text=t("home.subtitle"),
-            style="SectionText.TLabel",
-            wraplength=820,
-            justify="left",
-        ).grid(row=1, column=0, sticky="w", pady=(8, 0))
+        self.home_cards = []
+        descriptions = []
+        for key, number, command in tools:
+            card = ttk.Frame(cards, style="Card.TFrame", padding=20)
+            card.columnconfigure(0, weight=1)
+            ttk.Label(card, text=number, style="CardBadge.TLabel").grid(row=0, column=0, sticky="w")
+            title = ttk.Label(card, text=t(f"home.card_{key}_title"), style="CardTitle.TLabel", wraplength=240)
+            title.grid(row=1, column=0, sticky="w", pady=(12, 8))
+            description = ttk.Label(card, text=t(f"home.card_{key}_text"),
+                                    style="CardText.TLabel", wraplength=240, justify="left")
+            description.grid(row=2, column=0, sticky="nw")
+            card.rowconfigure(2, weight=1)
+            ttk.Button(card, text=t("home.open_tool") + "  →", style="Secondary.TButton",
+                       command=command).grid(row=3, column=0, sticky="w", pady=(18, 0))
+            self.home_cards.append(card)
+            descriptions.append((title, description))
+        layout = {"width": None}
 
-        quick_jump = ttk.Frame(surface, style="Card.TFrame", padding=22)
-        quick_jump.grid(row=1, column=0, sticky="ew", padx=16, pady=(0, 12))
-        quick_jump.columnconfigure(0, weight=1)
-        quick_jump.columnconfigure(1, weight=1)
-        quick_jump.columnconfigure(2, weight=1)
-
-        ttk.Label(quick_jump, text=t("home.quick_jump"), style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
-        ttk.Label(
-            quick_jump,
-            text=t("home.quick_jump_help"),
-            style="CardText.TLabel",
-            wraplength=760,
-            justify="left",
-        ).grid(row=1, column=0, columnspan=3, sticky="w", pady=(8, 18))
-
-        quick_buttons = (
-            (t("home.card_renamer_title"), self.show_renamer),
-            (t("home.card_qr_title"), self.show_qr_generator),
-            (t("home.card_pdf_title"), self.show_pdf_scanner),
-            (t("home.card_pdf_merge_title"), self.show_pdf_merger),
-            (t("home.card_wheel_title"), self.show_wheel_spinner),
-            (t("home.card_web_launcher_title"), self.show_web_launcher),
-            (t("home.card_cursor_title"), self.show_cursor_skins),
-        )
-        for index, (label, command) in enumerate(quick_buttons):
-            ttk.Button(quick_jump, text=label, style="Secondary.TButton", command=command).grid(
-                row=2 + (index // 3),
-                column=index % 3,
-                sticky="ew",
-                padx=(0, 12) if index % 3 != 2 else 0,
-                pady=(0, 12),
-            )
-
-        cards = ttk.Frame(surface, style="Panel.TFrame", padding=(16, 0, 16, 16))
-        cards.grid(row=2, column=0, sticky="nsew")
-        cards.columnconfigure(0, weight=1)
-        cards.columnconfigure(1, weight=1)
-        tool_cards = (
-            (t("home.card_renamer_title"), t("home.card_renamer_text"), self.show_renamer),
-            (t("home.card_qr_title"), t("home.card_qr_text"), self.show_qr_generator),
-            (t("home.card_pdf_title"), t("home.card_pdf_text"), self.show_pdf_scanner),
-            (t("home.card_cursor_title"), t("home.card_cursor_text"), self.show_cursor_skins),
-            (t("home.card_pdf_merge_title"), t("home.card_pdf_merge_text"), self.show_pdf_merger),
-            (t("home.card_wheel_title"), t("home.card_wheel_text"), self.show_wheel_spinner),
-            (t("home.card_web_launcher_title"), t("home.card_web_launcher_text"), self.show_web_launcher),
-        )
-
-        total_rows = (len(tool_cards) + 1) // 2
-        for row_index in range(total_rows):
-            cards.rowconfigure(row_index, weight=1)
-
-        for index, (title, description, command) in enumerate(tool_cards):
-            row_index = index // 2
-            column_index = index % 2
-            card = ttk.Frame(cards, style="Card.TFrame", padding=22)
-            card.grid(
-                row=row_index,
-                column=column_index,
-                sticky="nsew",
-                padx=(0, 10) if column_index == 0 else (10, 0),
-                pady=(0 if row_index == 0 else 18, 0),
-            )
-            ttk.Label(card, text=title, style="CardTitle.TLabel").pack(anchor="w")
-            ttk.Label(
-                card,
-                text=description,
-                style="CardText.TLabel",
-                wraplength=300,
-                justify="left",
-            ).pack(anchor="w", fill="x", pady=(10, 18))
-            ttk.Frame(card, style="Card.TFrame").pack(fill="both", expand=True)
-            ttk.Button(card, text=t("home.open_tool"), style="Primary.TButton", command=command).pack(anchor="w")
-
-        if len(tool_cards) % 2 == 1:
-            spacer = ttk.Frame(cards, style="Panel.TFrame")
-            spacer.grid(row=total_rows - 1, column=1, sticky="nsew", padx=(10, 0), pady=(18 if total_rows > 1 else 0, 0))
-
+        def arrange(event):
+            if event.widget is not frame.canvas or layout["width"] == event.width:
+                return
+            layout["width"] = event.width
+            columns = 3 if event.width >= 900 else 2 if event.width >= 620 else 1
+            for col in range(3):
+                cards.columnconfigure(col, weight=1 if col < columns else 0,
+                                      uniform="cards" if col < columns else "")
+            width = max(160, event.width // columns - 64)
+            for index, card in enumerate(self.home_cards):
+                card.grid(row=index // columns, column=index % columns, sticky="nsew",
+                          padx=(0, 12) if index % columns < columns - 1 else 0, pady=(0, 12))
+                for label in descriptions[index]:
+                    label.configure(wraplength=width)
+        frame.canvas.bind("<Configure>", arrange, add="+")
         frame.refresh_scroll_bindings()
         return frame
 
@@ -453,6 +181,8 @@ class ToolboxApp(tk.Tk):
         self.web_launcher_view.grid_forget()
         self.cursor_view.grid_forget()
         view.grid(row=0, column=0, sticky="nsew")
+        for name, button in self.nav_buttons.items():
+            button.configure(style="ActiveNav.TButton" if name == self.current_view_name else "Nav.TButton")
 
     def show_home(self) -> None:
         self.current_view_name = "home"

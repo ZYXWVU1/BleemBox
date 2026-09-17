@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 from i18n import t
+from scrollable_panel import ScrollablePanel
 from rename_logic import build_rename_preview, rename_files
 
 
@@ -28,9 +29,13 @@ class BatchRenamerView(ttk.Frame):
     def _build_layout(self) -> None:
         # This frame contains the renamer header, controls, and preview table.
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(2, weight=1)
+        self.rowconfigure(0, weight=1)
+        scroll_panel = ScrollablePanel(self, canvas_background="#f6f6f7")
+        scroll_panel.grid(row=0, column=0, sticky="nsew")
+        surface = scroll_panel.content
+        surface.columnconfigure(0, weight=1)
 
-        header = ttk.Frame(self, style="Panel.TFrame", padding=(6, 0, 6, 18))
+        header = ttk.Frame(surface, style="Panel.TFrame", padding=(6, 0, 6, 18))
         header.grid(row=0, column=0, sticky="ew")
         header.columnconfigure(0, weight=1)
 
@@ -40,14 +45,11 @@ class BatchRenamerView(ttk.Frame):
             text=t("renamer.subtitle"),
             style="SectionText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(8, 0))
-        ttk.Button(header, text=t("common.back_home"), style="Secondary.TButton", command=self.on_back_home).grid(
-            row=0, column=1, rowspan=2, sticky="e"
-        )
 
-        controls_card = ttk.Frame(self, style="Card.TFrame", padding=22)
+        controls_card = ttk.Frame(surface, style="Card.TFrame", padding=24)
         controls_card.grid(row=1, column=0, sticky="ew", padx=6, pady=(0, 14))
         controls_card.columnconfigure(1, weight=1)
-        controls_card.columnconfigure(3, weight=1)
+        controls_card.columnconfigure(3, weight=0)
 
         ttk.Label(controls_card, text=t("renamer.label_files"), style="FieldLabel.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Button(controls_card, text=t("renamer.choose_files"), style="Primary.TButton", command=self.choose_files).grid(
@@ -65,16 +67,16 @@ class BatchRenamerView(ttk.Frame):
         )
 
         options = ttk.Frame(controls_card, style="Card.TFrame")
-        options.grid(row=1, column=3, sticky="w", pady=(8, 0))
+        options.grid(row=2, column=0, columnspan=3, sticky="w", pady=(16, 0))
         ttk.Checkbutton(options, text=t("renamer.keep_extensions"), variable=self.keep_extension_var, style="Modern.TCheckbutton").pack(
             anchor="w"
         )
 
         action_row = ttk.Frame(controls_card, style="Card.TFrame")
-        action_row.grid(row=2, column=0, columnspan=4, sticky="w", pady=(18, 0))
+        action_row.grid(row=3, column=0, columnspan=3, sticky="w", pady=(18, 0))
         ttk.Button(action_row, text=t("renamer.rename_files"), style="Primary.TButton", command=self.perform_rename).pack(side="left")
 
-        preview_card = ttk.Frame(self, style="Card.TFrame", padding=22)
+        preview_card = ttk.Frame(surface, style="Card.TFrame", padding=24)
         preview_card.grid(row=2, column=0, sticky="nsew", padx=6, pady=(0, 6))
         preview_card.columnconfigure(0, weight=1)
         preview_card.rowconfigure(2, weight=1)
@@ -96,13 +98,15 @@ class BatchRenamerView(ttk.Frame):
         self.preview_table = ttk.Treeview(table_frame, columns=columns, show="headings", style="Clean.Treeview")
         self.preview_table.heading("original", text=t("renamer.current_name"))
         self.preview_table.heading("new", text=t("renamer.new_name"))
-        self.preview_table.column("original", width=360, anchor="w")
+        self.preview_table.column("original", width=280, minwidth=100, anchor="w")
         self.preview_table.column("new", width=360, anchor="w")
         self.preview_table.grid(row=0, column=0, sticky="nsew")
 
         scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=self.preview_table.yview)
         scrollbar.grid(row=0, column=1, sticky="ns")
         self.preview_table.configure(yscrollcommand=scrollbar.set)
+
+        scroll_panel.refresh_scroll_bindings()
 
     def _bind_live_preview(self) -> None:
         # Whenever the form changes, rebuild the rename preview automatically.

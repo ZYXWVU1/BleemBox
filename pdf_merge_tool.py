@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 from i18n import t
+from ui_theme import responsive_columns
 from pdf_merge_logic import PDFMergeItem, load_pdf_merge_items, merge_pdf_items, merge_summary, update_removed_pages
 from scrollable_panel import ScrollablePanel
 
@@ -30,7 +31,7 @@ class PDFMergeToolView(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
-        scroll_panel = ScrollablePanel(self, canvas_background="#f7f2eb")
+        scroll_panel = ScrollablePanel(self, canvas_background="#f6f6f7")
         scroll_panel.grid(row=0, column=0, sticky="nsew")
 
         surface = scroll_panel.content
@@ -49,9 +50,6 @@ class PDFMergeToolView(ttk.Frame):
             wraplength=800,
             justify="left",
         ).grid(row=1, column=0, sticky="w", pady=(8, 0))
-        ttk.Button(header, text=t("common.back_home"), style="Secondary.TButton", command=self.on_back_home).grid(
-            row=0, column=1, rowspan=2, sticky="e"
-        )
 
         content = ttk.Frame(surface, style="Panel.TFrame", padding=6)
         content.grid(row=1, column=0, sticky="nsew")
@@ -59,7 +57,7 @@ class PDFMergeToolView(ttk.Frame):
         content.columnconfigure(1, weight=3)
         content.rowconfigure(0, weight=1)
 
-        files_card = ttk.Frame(content, style="Card.TFrame", padding=22)
+        files_card = ttk.Frame(content, style="Card.TFrame", padding=24)
         files_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
         files_card.columnconfigure(0, weight=1)
         files_card.rowconfigure(3, weight=1)
@@ -105,7 +103,7 @@ class PDFMergeToolView(ttk.Frame):
         self.files_table.heading("pages", text=t("pdf_merge.column_pages"))
         self.files_table.heading("removed", text=t("pdf_merge.column_removed"))
         self.files_table.heading("kept", text=t("pdf_merge.column_kept"))
-        self.files_table.column("name", width=340, anchor="w")
+        self.files_table.column("name", width=220, minwidth=150, anchor="w")
         self.files_table.column("pages", width=90, anchor="center")
         self.files_table.column("removed", width=150, anchor="w")
         self.files_table.column("kept", width=90, anchor="center")
@@ -121,7 +119,7 @@ class PDFMergeToolView(ttk.Frame):
         right_panel.columnconfigure(0, weight=1)
         right_panel.rowconfigure(1, weight=1)
 
-        pages_card = ttk.Frame(right_panel, style="Card.TFrame", padding=22)
+        pages_card = ttk.Frame(right_panel, style="Card.TFrame", padding=24)
         pages_card.grid(row=0, column=0, sticky="ew")
         pages_card.columnconfigure(0, weight=1)
 
@@ -172,7 +170,7 @@ class PDFMergeToolView(ttk.Frame):
             command=self.clear_page_changes,
         ).pack(side="left")
 
-        merge_card = ttk.Frame(right_panel, style="Card.TFrame", padding=22)
+        merge_card = ttk.Frame(right_panel, style="Card.TFrame", padding=24)
         merge_card.grid(row=1, column=0, sticky="nsew", pady=(14, 0))
         merge_card.columnconfigure(0, weight=1)
 
@@ -200,6 +198,7 @@ class PDFMergeToolView(ttk.Frame):
         status_box.grid(row=2, column=0, sticky="ew", padx=6, pady=(8, 6))
         ttk.Label(status_box, textvariable=self.status_var, style="Status.TLabel", padding=(12, 9)).pack(anchor="w", fill="x")
 
+        responsive_columns(content, files_card, right_panel, threshold=1100)
         scroll_panel.refresh_scroll_bindings()
 
     def choose_pdfs(self) -> None:

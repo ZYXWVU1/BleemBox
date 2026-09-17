@@ -46,7 +46,7 @@ class WebsiteLauncherToolView(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
-        self.scroll_panel = ScrollablePanel(self, canvas_background="#f7f2eb")
+        self.scroll_panel = ScrollablePanel(self, canvas_background="#f6f6f7")
         self.scroll_panel.grid(row=0, column=0, sticky="nsew")
 
         surface = self.scroll_panel.content
@@ -65,9 +65,6 @@ class WebsiteLauncherToolView(ttk.Frame):
             wraplength=800,
             justify="left",
         ).grid(row=1, column=0, sticky="w", pady=(8, 0))
-        ttk.Button(header, text=t("common.back_home"), style="Secondary.TButton", command=self.on_back_home).grid(
-            row=0, column=1, rowspan=2, sticky="e"
-        )
 
         self.content_frame = ttk.Frame(surface, style="Panel.TFrame", padding=6)
         self.content_frame.grid(row=1, column=0, sticky="nsew")
@@ -75,7 +72,7 @@ class WebsiteLauncherToolView(ttk.Frame):
         self.content_frame.columnconfigure(1, weight=1)
         self.content_frame.rowconfigure(0, weight=1)
 
-        self.launcher_card = ttk.Frame(self.content_frame, style="Card.TFrame", padding=22)
+        self.launcher_card = ttk.Frame(self.content_frame, style="Card.TFrame", padding=24)
         self.launcher_card.columnconfigure(0, weight=1)
 
         ttk.Label(self.launcher_card, text=t("web_launcher.buttons_title"), style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
@@ -98,7 +95,7 @@ class WebsiteLauncherToolView(ttk.Frame):
         self.launch_buttons_frame.columnconfigure(0, weight=1)
         self.launch_buttons_frame.columnconfigure(1, weight=1)
 
-        self.editor_card = ttk.Frame(self.content_frame, style="Card.TFrame", padding=22)
+        self.editor_card = ttk.Frame(self.content_frame, style="Card.TFrame", padding=24)
         self.editor_card.columnconfigure(0, weight=1)
 
         ttk.Label(self.editor_card, text=t("web_launcher.editor_title"), style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
@@ -157,10 +154,15 @@ class WebsiteLauncherToolView(ttk.Frame):
             font=ui_font(10),
             relief="flat",
             borderwidth=0,
-            background="#fffdf9",
-            foreground="#21303a",
-            insertbackground="#21303a",
-            selectbackground="#f1d7c2",
+            background="#fafafb",
+            foreground="#242629",
+            insertbackground="#242629",
+            selectbackground="#dedfe3",
+            selectforeground="#242629",
+            width=1,
+            highlightthickness=1,
+            highlightbackground="#dcdde0",
+            highlightcolor="#62666d",
             padx=12,
             pady=12,
             undo=False,
@@ -203,8 +205,8 @@ class WebsiteLauncherToolView(ttk.Frame):
         self.editor_card.grid_forget()
 
         if self.is_editing:
-            self.launcher_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
-            self.editor_card.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
+            self.launcher_card.grid(row=0, column=0, columnspan=2, sticky="nsew")
+            self.editor_card.grid(row=1, column=0, columnspan=2, sticky="nsew", pady=(16, 0))
         else:
             self.launcher_card.grid(row=0, column=0, columnspan=2, sticky="nsew")
 

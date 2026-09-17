@@ -49,7 +49,16 @@ You can also run it from the project root:
 python BleemBoxTool/BleemBox/main.py
 ```
 
-### Dependencies
+### UI development checks
+
+The interface uses a shared neutral theme in `ui_theme.py`, a persistent sidebar,
+and responsive tool layouts. To check both languages and window sizes, run
+`python -B tests/ui_smoke.py` from this folder. This briefly opens the application
+and saves screenshots under `artifacts/ui/`. It does not operate on user files or
+apply system cursor settings. Install the normal app dependencies first; the check
+also supports an isolated `.ui-test-deps` folder for local verification.
+
+### Runtime dependencies
 
 `main.py` checks for missing packages before the full UI loads. If something required is missing, it tries to install packages from `requirements.txt` automatically.
 
